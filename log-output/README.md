@@ -10,7 +10,7 @@ Aja komennot `log-output`-kansiossa, kun `k3s-default`-klusteri on käynnissä.
 ```cmd
 docker build -t log-output:1.1 .
 k3d image import log-output:1.1 -c k3s-default
-kubectl create deployment log-output --image=log-output:1.1
+kubectl apply -f manifests/deployment.yaml
 kubectl rollout status deployment/log-output
 kubectl logs -f deployment/log-output
 ```
