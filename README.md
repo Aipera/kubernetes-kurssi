@@ -1,1 +1,2 @@
 - [1.1 – Log output](https://github.com/Aipera/kubernetes-kurssi/tree/1.1/log-output)
+- [1.2 – Todo app](https://github.com/Aipera/kubernetes-kurssi/tree/1.2/todo-app)
