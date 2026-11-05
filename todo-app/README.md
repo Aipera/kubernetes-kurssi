@@ -1,7 +1,7 @@
 # Todo app – tehtävä 1.4
 
-Node.js-HTTP-palvelin käyttää oletuksena porttia 3000. Portin voi vaihtaa
-`PORT`-ympäristömuuttujalla. Palvelin tulostaa käynnistyessään käytössä olevan portin.
+Node.js-palvelin lukee portin `PORT`-ympäristömuuttujasta.
+Tässä versiossa `manifests/deployment.yaml` asettaa portiksi `8080`.
 
 ## Käynnistys paikallisessa Kubernetes-klusterissa
 
