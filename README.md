@@ -1,16 +1,1 @@
-# Log output
-
-Sovellus arpoo käynnistyessään UUID:n ja tulostaa saman tunnisteen
-uuden aikaleiman kanssa viiden sekunnin välein.
-
-## Käynnistys
-
-Aja komennot `log-output`-kansiossa, kun `k3s-default`-klusteri on käynnissä.
-
-```cmd
-docker build -t log-output:1.1 .
-k3d image import log-output:1.1 -c k3s-default
-kubectl create deployment log-output --image=log-output:1.1
-kubectl rollout status deployment/log-output
-kubectl logs -f deployment/log-output
-```
+- [1.1 – Log output](https://github.com/Aipera/kubernetes-kurssi/tree/1.1/log-output)
