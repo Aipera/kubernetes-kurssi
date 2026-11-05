@@ -1,1 +1,1 @@
-- [1.1 – Log output]([https://github.com/Aipera/kubernetes-kurssi/tree/1.1/log-output](https://github.com/Aipera/kubernetes-kurssi/tree/main/log-output))
+- [1.1 – Log output]([https://github.com/Aipera/kubernetes-kurssi/tree/1.1/log-output])
