@@ -1,4 +1,4 @@
-# Todo app – tehtävä 1.2
+# Todo app – tehtävä 1.4
 
 Node.js-HTTP-palvelin käyttää oletuksena porttia 3000. Portin voi vaihtaa
 `PORT`-ympäristömuuttujalla. Palvelin tulostaa käynnistyessään käytössä olevan portin.
