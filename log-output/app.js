@@ -2,12 +2,15 @@ const http = require('node:http');
 const { readFile } = require('node:fs/promises');
 
 async function readPingCount() {
-  try {
-    return (await readFile('/persistent/count.txt', 'utf8')).trim();
-  } catch (error) {
-    if (error.code === 'ENOENT') return '0';
-    throw error;
+  const response = await fetch('http://ping-pong/pongs', {
+    signal: AbortSignal.timeout(5000)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Ping-pong returned HTTP ${response.status}`);
   }
+
+  return (await response.text()).trim();
 }
 
 const server = http.createServer(async (req, res) => {

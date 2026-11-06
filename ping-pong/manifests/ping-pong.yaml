@@ -16,15 +16,8 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: ping-pong:1.11
+          image: ping-pong:2.1
           imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - name: ping-pong-data
-              mountPath: /persistent
-      volumes:
-        - name: ping-pong-data
-          persistentVolumeClaim:
-            claimName: ping-pong-pvc
 ---
 apiVersion: v1
 kind: Service
