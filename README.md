@@ -8,3 +8,4 @@
 - [1.8 – Todo app Ingressin kautta](https://github.com/Aipera/kubernetes-kurssi/tree/1.8/todo-app)
 - [1.9 – Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/1.9/ping-pong)
 - [1.10 – Log output jaettu kahteen konttiin](https://github.com/Aipera/kubernetes-kurssi/tree/1.10/log-output)
+- 1.11 – Pysyvä laskuri: [Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/1.11/ping-pong) · [Log output](https://github.com/Aipera/kubernetes-kurssi/tree/1.11/log-output) · [PV ja PVC](https://github.com/Aipera/kubernetes-kurssi/tree/1.11/storage)
