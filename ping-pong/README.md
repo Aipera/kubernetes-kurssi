@@ -1,6 +1,7 @@
-# Ping-pong – tehtävä 1.11
+# Ping-pong – tehtävä 2.1
 
-Ping-pong vastaa `/pingpong`-pyyntöihin ja tallentaa pyyntömäärän
-pysyvälle levylle tiedostoon `/persistent/count.txt`.
+`GET /pingpong` palauttaa `pong N` ja kasvattaa laskuria.
+`GET /pongs` palauttaa nykyisen laskurin arvon kasvattamatta sitä.
+Laskuri säilytetään prosessin muistissa.
 
-[Tehtävän 1.11 käynnistys ja testaus](../storage/README.md)
+[Ajo- ja testausohje](../log-output/README.md)
