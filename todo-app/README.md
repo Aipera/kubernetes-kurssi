@@ -1,22 +1,22 @@
-# Todo app – tehtävä 1.5
+# Todo app – tehtävä 1.6
 
-Todo app on Node.js-palvelin, joka palauttaa HTML-etusivun `GET /` -pyyntöön.
-Kubernetesissa palvelin kuuntelee porttia `8080`, joka on määritetty
-`PORT`-ympäristömuuttujalla tiedostossa `manifests/deployment.yaml`.
+Todo app vastaa `GET /` -pyyntöön HTML-sivulla. Kubernetesin
+NodePort Service ohjaa liikenteen noden portista `30080` sovelluksen
+porttiin `8080`. k3d julkaisee noden portin Windowsin portissa `8082`.
 
-## Käynnistys ja selaintesti
+## Käynnistys
 
-Aja komennot `todo-app`-kansiossa, kun `k3s-default`-klusteri on käynnissä.
+Aja komennot `todo-app`-kansiossa. Ohje käyttää `kurssi-network`-klusteria,
+joka on luotu porttikytkennällä `8082:30080@agent:0`.
 
 ```cmd
 docker build -t todo-app:1.5 .
-k3d image import todo-app:1.5 -c k3s-default
-kubectl apply -f manifests/deployment.yaml
+k3d image import todo-app:1.5 -c kurssi-network
+kubectl config use-context k3d-kurssi-network
+kubectl apply -f manifests
 kubectl rollout status deployment/todo-app
-kubectl port-forward deployment/todo-app 3003:8080
+kubectl get service todo-app
 ```
 
-Pidä porttiohjaus käynnissä ja avaa selaimessa [http://localhost:3003/](http://localhost:3003/).
-Sivulla pitäisi näkyä otsikko **Todo app**. Porttiohjaus välittää
-koneen portin `3003` liikenteen sovelluksen porttiin `8080`.
-Voit lopettaa porttiohjauksen painamalla **Ctrl+C**.
+Avaa selaimessa [http://localhost:8082/](http://localhost:8082/).
+Sivulla pitäisi näkyä **Todo app**.
