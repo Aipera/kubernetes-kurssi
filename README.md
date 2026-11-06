@@ -9,3 +9,4 @@
 - [1.9 – Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/1.9/ping-pong)
 - [1.10 – Log output jaettu kahteen konttiin](https://github.com/Aipera/kubernetes-kurssi/tree/1.10/log-output)
 - 1.11 – Pysyvä laskuri: [Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/1.11/ping-pong) · [Log output](https://github.com/Aipera/kubernetes-kurssi/tree/1.11/log-output) · [PV ja PVC](https://github.com/Aipera/kubernetes-kurssi/tree/1.11/storage)
+- [1.12 – Todo appin pysyvä kuvavälimuisti](https://github.com/Aipera/kubernetes-kurssi/tree/1.12/todo-app)
