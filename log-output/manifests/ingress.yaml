@@ -14,3 +14,10 @@ spec:
                 name: log-output
                 port:
                   number: 80
+          - path: /pingpong
+            pathType: Exact
+            backend:
+              service:
+                name: ping-pong
+                port:
+                  number: 80
