@@ -57,6 +57,21 @@ const server = http.createServer(async (req, res) => {
 <body>
   <h1>Todo App</h1>
   <img src="/image.jpg" alt="Satunnainen kuva Lorem Picsumista">
+<section aria-labelledby="todos-heading">
+  <p>
+    <label for="new-todo">Uusi tehtävä (enintään 140 merkkiä)</label><br>
+    <input id="new-todo" name="todo" type="text" maxlength="140"
+           placeholder="Kirjoita uusi tehtävä">
+    <button type="button">Send</button>
+  </p>
+
+  <h2 id="todos-heading">Todos</h2>
+  <ul style="display: inline-block; text-align: left;">
+    <li>Opettele Kubernetesin perusteet</li>
+    <li>Vie sovellus klusteriin</li>
+    <li>Ota käyttöön pysyvä tallennustila</li>
+  </ul>
+</section>
   <p>DevOps with Kubernetes 2026</p>
 </body>
 </html>`);
