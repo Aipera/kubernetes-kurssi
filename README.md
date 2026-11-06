@@ -3,3 +3,4 @@
 - [1.3 – Log output YAMLilla](https://github.com/Aipera/kubernetes-kurssi/tree/1.3/log-output)
 - [1.4 – Todo app YAMLilla](https://github.com/Aipera/kubernetes-kurssi/tree/1.4/todo-app)
 - [1.5 – Todo app selaimessa](https://github.com/Aipera/kubernetes-kurssi/tree/1.5/todo-app)
+- [1.6 – Todo app NodePortilla](https://github.com/Aipera/kubernetes-kurssi/tree/1.6/todo-app)
