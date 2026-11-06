@@ -21,3 +21,10 @@ spec:
                 name: todo-app
                 port:
                   number: 80
+          - path: /todos
+            pathType: Exact
+            backend:
+              service:
+                name: todo-backend
+                port:
+                  number: 80

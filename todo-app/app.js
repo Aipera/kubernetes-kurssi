@@ -57,22 +57,79 @@ const server = http.createServer(async (req, res) => {
 <body>
   <h1>Todo App</h1>
   <img src="/image.jpg" alt="Satunnainen kuva Lorem Picsumista">
-<section aria-labelledby="todos-heading">
-  <p>
-    <label for="new-todo">Uusi tehtävä (enintään 140 merkkiä)</label><br>
-    <input id="new-todo" name="todo" type="text" maxlength="140"
-           placeholder="Kirjoita uusi tehtävä">
-    <button type="button">Send</button>
-  </p>
 
-  <h2 id="todos-heading">Todos</h2>
-  <ul style="display: inline-block; text-align: left;">
-    <li>Opettele Kubernetesin perusteet</li>
-    <li>Vie sovellus klusteriin</li>
-    <li>Ota käyttöön pysyvä tallennustila</li>
-  </ul>
-</section>
+  <section aria-labelledby="todos-heading">
+    <form id="todo-form">
+      <label for="new-todo">Uusi tehtävä (enintään 140 merkkiä)</label><br>
+      <input id="new-todo" name="todo" type="text" maxlength="140"
+             placeholder="Kirjoita uusi tehtävä" required>
+      <button type="submit" disabled>Send</button>
+    </form>
+
+    <p id="todo-status" role="status"></p>
+    <h2 id="todos-heading">Todos</h2>
+    <ul id="todo-list" style="display: inline-block; text-align: left;"></ul>
+  </section>
+
   <p>DevOps with Kubernetes 2026</p>
+
+  <script>
+    const form = document.getElementById('todo-form');
+    const input = document.getElementById('new-todo');
+    const list = document.getElementById('todo-list');
+    const status = document.getElementById('todo-status');
+    const button = form.querySelector('button');
+
+    async function loadTodos() {
+      const response = await fetch('/todos', { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error('Tehtävälistaa ei saatu ladattua.');
+      }
+
+      const todos = await response.json();
+      list.replaceChildren();
+
+      for (const text of todos) {
+        const item = document.createElement('li');
+        item.textContent = text;
+        list.append(item);
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.textContent = '';
+      button.disabled = true;
+
+      try {
+        const response = await fetch('/todos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: input.value })
+        });
+
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+          throw new Error(result.error || 'Tallennus epäonnistui.');
+        }
+
+        input.value = '';
+        await loadTodos();
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    loadTodos()
+      .catch((error) => {
+        status.textContent = error.message;
+      })
+      .finally(() => {
+        button.disabled = false;
+      });
+  </script>
 </body>
 </html>`);
     return;
