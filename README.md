@@ -11,3 +11,4 @@
 - 1.11 – Pysyvä laskuri: [Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/1.11/ping-pong) · [Log output](https://github.com/Aipera/kubernetes-kurssi/tree/1.11/log-output) · [PV ja PVC](https://github.com/Aipera/kubernetes-kurssi/tree/1.11/storage)
 - [1.12 – Todo appin pysyvä kuvavälimuisti](https://github.com/Aipera/kubernetes-kurssi/tree/1.12/todo-app)
 - [1.13 – Todo appin tehtävälista](https://github.com/Aipera/kubernetes-kurssi/tree/1.13/todo-app)
+- 2.1 – Podien HTTP-yhteys: [Log output](https://github.com/Aipera/kubernetes-kurssi/tree/2.1/log-output) · [Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/2.1/ping-pong)
