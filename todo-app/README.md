@@ -1,26 +1,29 @@
-# Todo app – tehtävä 1.13
+# Todo app – tehtävä 2.2
 
-Todo app näyttää etusivulla satunnaisen kuvan, tekstikentän, Send-painikkeen
-ja kolme valmiiksi määriteltyä tehtävää. Tekstikenttä hyväksyy enintään
-140 merkkiä. Send-painikkeen toiminnallisuus lisätään myöhemmin.
+Todo app näyttää kuvan, tehtävälistan ja lomakkeen uuden tehtävän lisäämiseen.
+Kuva säilyy pysyvällä levyllä, ja sen välimuisti on voimassa 10 minuuttia.
 
-Kuva tallennetaan pysyvälle levylle ja uusitaan, kun seuraava kuvapyyntö
-saapuu kuvan vanhennuttua. Kuva on voimassa 10 minuuttia.
+Selain hakee listan `GET /todos` -pyynnöllä ja lähettää uuden tehtävän
+`POST /todos` -pyynnöllä. Ingress ohjaa nämä pyynnöt `todo-backend`-palvelulle.
 
 ## Käynnistys
 
-Aja komennot `todo-app`-kansiossa, kun `kurssi-network`-klusteri on käynnissä.
+Aja komennot repositorion juurikansiossa, kun `kurssi-network`-klusteri on käynnissä.
 
 ```cmd
 kubectl config use-context k3d-kurssi-network
-docker build -t todo-app:1.13 .
-k3d image import todo-app:1.13 -c kurssi-network
-kubectl apply -f manifests
+docker build -t todo-backend:2.2 todo-backend
+docker build -t todo-app:2.2 todo-app
+k3d image import todo-backend:2.2 todo-app:2.2 -c kurssi-network
+kubectl apply -f todo-backend\manifests
+kubectl apply -f todo-app\manifests
+kubectl rollout status deployment/todo-backend
 kubectl rollout status deployment/todo-app
 ```
 
 ## Testaus
 
-Avaa [http://localhost:8081/](http://localhost:8081/). Tarkista, että kuvan alla
-näkyvät tekstikenttä, Send-painike ja kolme tehtävää. Liitä kenttään yli
-140 tavallista kirjainta ja varmista, että kenttään jää enintään 140 merkkiä.
+Avaa [http://localhost:8081/](http://localhost:8081/). Kirjoita tehtävä ja
+paina **Send**. Tarkista, että tehtävä näkyy listassa myös sivun päivityksen
+jälkeen. [http://localhost:8081/todos](http://localhost:8081/todos)
+näyttää saman listan JSON-muodossa.
