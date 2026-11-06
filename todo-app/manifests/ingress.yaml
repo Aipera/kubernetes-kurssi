@@ -14,3 +14,10 @@ spec:
                 name: todo-app
                 port:
                   number: 80
+          - path: /image.jpg
+            pathType: Exact
+            backend:
+              service:
+                name: todo-app
+                port:
+                  number: 80
