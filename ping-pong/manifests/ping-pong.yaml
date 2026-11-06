@@ -4,6 +4,8 @@ metadata:
   name: ping-pong
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: ping-pong
@@ -14,8 +16,15 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: ping-pong:1.9
+          image: ping-pong:1.11
           imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: ping-pong-data
+              mountPath: /persistent
+      volumes:
+        - name: ping-pong-data
+          persistentVolumeClaim:
+            claimName: ping-pong-pvc
 ---
 apiVersion: v1
 kind: Service

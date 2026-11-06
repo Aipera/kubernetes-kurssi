@@ -15,19 +15,25 @@ spec:
       volumes:
         - name: shared-logs
           emptyDir: {}
+        - name: ping-pong-data
+          persistentVolumeClaim:
+            claimName: ping-pong-pvc
       containers:
         - name: writer
-          image: log-output:1.10
+          image: log-output:1.11
           imagePullPolicy: IfNotPresent
           command: ["node", "writer.js"]
           volumeMounts:
             - name: shared-logs
               mountPath: /shared
         - name: reader
-          image: log-output:1.10
+          image: log-output:1.11
           imagePullPolicy: IfNotPresent
           command: ["node", "app.js"]
           volumeMounts:
             - name: shared-logs
               mountPath: /shared
+              readOnly: true
+            - name: ping-pong-data
+              mountPath: /persistent
               readOnly: true
