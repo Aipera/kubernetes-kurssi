@@ -13,3 +13,4 @@
 - [1.13 – Todo appin tehtävälista](https://github.com/Aipera/kubernetes-kurssi/tree/1.13/todo-app)
 - 2.1 – Podien HTTP-yhteys: [Log output](https://github.com/Aipera/kubernetes-kurssi/tree/2.1/log-output) · [Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/2.1/ping-pong)
 - 2.2 – Tehtävien haku ja tallennus: [Todo app](https://github.com/Aipera/kubernetes-kurssi/tree/2.2/todo-app) · [Todo backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.2/todo-backend)
+- 2.3 – Keep them separated: [Log output](./../../tree/2.3/log-output) · [Ping-pong](./../../tree/2.3/ping-pong)
