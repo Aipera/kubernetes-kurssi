@@ -1,31 +1,28 @@
-# Log output – tehtävä 2.1
+## 2.3 – Keep them separated
 
-`GET /log` näyttää uusimman aikaleiman, UUID:n ja Ping-pongin laskurin.
-Log output hakee laskurin klusterin sisällä osoitteesta `http://ping-pong/pongs`.
-Log outputin kaksi konttia jakavat oman lokitiedostonsa `emptyDir`-volyymilla.
+Log output ja Ping-pong toimivat `exercises`-namespacessa. Log output hakee laskurin arvon Ping-pongin Serviceltä HTTP-pyynnöllä osoitteesta `http://ping-pong/pongs`.
 
-## Käynnistys
+### Käynnistä sovellukset
 
-Aja komennot repositorion juurikansiossa, kun `kurssi-network`-klusteri on käynnissä.
+Aja komennot repositorion juurikansiossa Windowsin CMD:ssä, kun `kurssi-network`-klusteri on käynnissä.
 
 ```cmd
-kubectl config use-context k3d-kurssi-network
-docker build -t ping-pong:2.1 ping-pong
 docker build -t log-output:2.1 log-output
-k3d image import ping-pong:2.1 log-output:2.1 -c kurssi-network
-kubectl apply -f ping-pong\manifests
-kubectl apply -f log-output\manifests
-kubectl rollout status deployment/ping-pong
-kubectl rollout status deployment/log-output
+docker build -t ping-pong:2.1 ping-pong
+k3d image import log-output:2.1 ping-pong:2.1 -c kurssi-network
+
+kubectl config use-context k3d-kurssi-network
+kubectl apply -f exercises-namespace.yaml
+kubectl -n exercises apply -f log-output\manifests -f ping-pong\manifests
+kubectl -n exercises rollout status deployment/ping-pong
+kubectl -n exercises rollout status deployment/log-output
 ```
 
-## Testaus
+### Testaa yhteys
 
 ```cmd
 curl.exe http://localhost:8081/pingpong
 curl.exe http://localhost:8081/log
-curl.exe http://localhost:8081/log
 ```
 
-`/pingpong` kasvattaa laskuria yhdellä. Molemmat `/log`-pyynnöt
-näyttävät saman arvon rivillä `Ping / Pongs: N`.
+`/pingpong` palauttaa `pong`-vastauksen ja kasvattaa laskuria. `/log` näyttää aikaleiman, tunnisteen ja laskurin arvon rivillä `Ping / Pongs`.
