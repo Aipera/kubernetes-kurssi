@@ -15,3 +15,4 @@
 - 2.2 – Tehtävien haku ja tallennus: [Todo app](https://github.com/Aipera/kubernetes-kurssi/tree/2.2/todo-app) · [Todo backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.2/todo-backend)
 - 2.3 – Keep them separated: [Log output](./../../tree/2.3/log-output) · [Ping-pong](./../../tree/2.3/ping-pong)
 - 2.4 – The project, step 9: [Todo App](https://github.com/Aipera/kubernetes-kurssi/tree/2.4/todo-app) · [Todo Backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.4/todo-backend)
+- 2.5 – Documentation and ConfigMaps: [Log output](https://github.com/Aipera/kubernetes-kurssi/tree/2.5/log-output)
