@@ -1,8 +1,13 @@
-# Todo backend – tehtävä 2.2
+## 2.4 – The project, step 9
+
+Todo Backendin Deployment ja Service ovat `project`-namespacessa. Todo Appin Ingress ohjaa `/todos`-pyynnöt `todo-backend`-Servicelle.
 
 - `GET /todos` palauttaa tehtävälistan JSON-muodossa.
-- `POST /todos` lisää tehtävän. Pyynnön runko on esimerkiksi `{"text":"Testitehtävä"}`.
-- Tehtävän pituus on 1–140 merkkiä. Lista säilytetään muistissa ja palautuu
-  esimerkkitehtäviin, kun backendin prosessi käynnistyy uudelleen.
+- `POST /todos` lisää uuden tehtävän. Tehtävät tallennetaan backendin muistiin.
 
-[Käynnistys ja testaus](../todo-app/README.md)
+Katso [projektin käynnistysohje](../todo-app/README.md).
+
+```cmd
+kubectl -n project get deployment,service todo-backend
+curl.exe -f http://localhost:8081/todos
+```
