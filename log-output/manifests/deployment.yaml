@@ -16,19 +16,34 @@ spec:
       volumes:
         - name: shared-logs
           emptyDir: {}
+        - name: log-output-config
+          configMap:
+            name: log-output-config
+            items:
+              - key: information.txt
+                path: information.txt
       containers:
         - name: writer
-          image: log-output:2.1
+          image: log-output:2.5
           imagePullPolicy: IfNotPresent
-          command: ["node", "writer.js"]
+          command: [node, writer.js]
           volumeMounts:
             - name: shared-logs
               mountPath: /shared
         - name: reader
-          image: log-output:2.1
+          image: log-output:2.5
           imagePullPolicy: IfNotPresent
-          command: ["node", "app.js"]
+          command: [node, app.js]
+          env:
+            - name: MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: log-output-config
+                  key: MESSAGE
           volumeMounts:
             - name: shared-logs
               mountPath: /shared
+              readOnly: true
+            - name: log-output-config
+              mountPath: /config
               readOnly: true

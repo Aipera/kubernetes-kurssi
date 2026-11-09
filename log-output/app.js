@@ -21,12 +21,18 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    const information = await readFile('/config/information.txt', 'utf8');
     const log = await readFile('/shared/output.log', 'utf8');
     const latestLine = log.trimEnd().split('\n').at(-1);
     const count = await readPingCount();
 
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end(`${latestLine}\nPing / Pongs: ${count}\n`);
+    res.end(
+      `file content: ${information}\n` +
+      `env variable: MESSAGE=${process.env.MESSAGE}\n` +
+      `${latestLine}\n` +
+      `Ping / Pongs: ${count}\n`
+    );
   } catch (error) {
     console.error(error);
     res.writeHead(error.code === 'ENOENT' ? 503 : 500);
