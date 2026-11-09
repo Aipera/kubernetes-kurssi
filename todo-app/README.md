@@ -1,29 +1,28 @@
-# Todo app – tehtävä 2.2
+## 2.4 – The project, step 9
 
-Todo app näyttää kuvan, tehtävälistan ja lomakkeen uuden tehtävän lisäämiseen.
-Kuva säilyy pysyvällä levyllä, ja sen välimuisti on voimassa 10 minuuttia.
+Todo App ja Todo Backend toimivat `project`-namespacessa. Yhteinen Ingress ohjaa `/todos`-pyynnöt backendille. Todo Appin kuvavälimuisti käyttää `todo-image-cache`-PVC:tä samassa namespacessa.
 
-Selain hakee listan `GET /todos` -pyynnöllä ja lähettää uuden tehtävän
-`POST /todos` -pyynnöllä. Ingress ohjaa nämä pyynnöt `todo-backend`-palvelulle.
+### Käynnistä projekti
 
-## Käynnistys
-
-Aja komennot repositorion juurikansiossa, kun `kurssi-network`-klusteri on käynnissä.
+Aja komennot repositorion juurikansiossa Windowsin CMD:ssä, kun `kurssi-network`-klusteri on käynnissä.
 
 ```cmd
-kubectl config use-context k3d-kurssi-network
-docker build -t todo-backend:2.2 todo-backend
 docker build -t todo-app:2.2 todo-app
-k3d image import todo-backend:2.2 todo-app:2.2 -c kurssi-network
-kubectl apply -f todo-backend\manifests
-kubectl apply -f todo-app\manifests
-kubectl rollout status deployment/todo-backend
-kubectl rollout status deployment/todo-app
+docker build -t todo-backend:2.2 todo-backend
+k3d image import todo-app:2.2 todo-backend:2.2 -c kurssi-network
+
+kubectl config use-context k3d-kurssi-network
+kubectl apply -f project-namespace.yaml
+kubectl -n project apply -f todo-app\manifests -f todo-backend\manifests
+kubectl -n project rollout status deployment/todo-app
+kubectl -n project rollout status deployment/todo-backend
 ```
 
-## Testaus
+### Testaa sovellus
 
-Avaa [http://localhost:8081/](http://localhost:8081/). Kirjoita tehtävä ja
-paina **Send**. Tarkista, että tehtävä näkyy listassa myös sivun päivityksen
-jälkeen. [http://localhost:8081/todos](http://localhost:8081/todos)
-näyttää saman listan JSON-muodossa.
+```cmd
+kubectl -n project get deployments,services,ingress,pvc
+curl.exe -f http://localhost:8081/todos
+```
+
+Tarkista, että molemmat Deploymentit ovat valmiita, `todo-image-cache` on `Bound` ja `/todos` palauttaa JSON-listan. Avaa [Todo App](http://localhost:8081) ja varmista, että kuva näkyy ja uusi tehtävä ilmestyy listaan **Send**-painikkeella.
