@@ -18,3 +18,4 @@
 - 2.5 – Documentation and ConfigMaps: [Log output](https://github.com/Aipera/kubernetes-kurssi/tree/2.5/log-output)
 - 2.6 – The project, step 10: [Todo App](https://github.com/Aipera/kubernetes-kurssi/tree/2.6/todo-app) · [Todo Backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.6/todo-backend)
 - 2.7 – Stateful applications: [Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/2.7/ping-pong)
+- 2.8 – The project, step 11: [Todo Backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.8/todo-backend)
