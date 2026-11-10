@@ -16,3 +16,4 @@
 - 2.3 – Keep them separated: [Log output](./../../tree/2.3/log-output) · [Ping-pong](./../../tree/2.3/ping-pong)
 - 2.4 – The project, step 9: [Todo App](https://github.com/Aipera/kubernetes-kurssi/tree/2.4/todo-app) · [Todo Backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.4/todo-backend)
 - 2.5 – Documentation and ConfigMaps: [Log output](https://github.com/Aipera/kubernetes-kurssi/tree/2.5/log-output)
+- 2.6 – The project, step 10: [Todo App](https://github.com/Aipera/kubernetes-kurssi/tree/2.6/todo-app) · [Todo Backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.6/todo-backend)
