@@ -20,3 +20,4 @@
 - 2.7 – Stateful applications: [Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/2.7/ping-pong)
 - 2.8 – The project, step 11: [Todo Backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.8/todo-backend)
 - 2.9 – The project, step 12: [Wikipedia CronJob](https://github.com/Aipera/kubernetes-kurssi/blob/2.9/todo-backend/manifests/read-wikipedia-cronjob.yaml)
+- 2.10 – The project, step 13: [Lokitus ja Grafana-testi](https://github.com/Aipera/kubernetes-kurssi/tree/2.10/monitoring)
