@@ -1,33 +1,50 @@
-## 2.5 – Documentation and ConfigMaps
+# 3.2 – Back to Ingress
 
-Log output käyttää `exercises`-namespacessa ConfigMapia `log-output-config`. Kubernetes liittää `information.txt`-avaimen tiedostoksi polkuun `/config/information.txt` ja asettaa `MESSAGE`-avaimen ympäristömuuttujaksi `reader`-kontille. `/log` näyttää molemmat arvot ennen aikaleimaa ja pong-laskuria.
+Log output ja Ping-pong toimivat GKE:ssä yhden julkisen Ingressin kautta.
 
-### Käyttöönotto
+| Reitti | Palvelu | Vastaus |
+| --- | --- | --- |
+| `/pingpong` | `ping-pong` | Palauttaa `pong N` ja kasvattaa PostgreSQL-laskuria yhdellä |
+| `/log` | `log-output` | Näyttää uusimman lokirivin, ConfigMapin tiedot ja laskurin nykyisen arvon |
 
-Aja komennot repositorion juurikansiossa Windowsin CMD:ssä. Käynnistä ensin `kurssi-network`-klusteri ja Ping-pong tehtävän 2.3 ohjeilla.
+Ingress käyttää kahta `ClusterIP`-palvelua. Molemmat sovellukset vastaavat omassa `/`-reitissään `200 OK`, jotta GKE voi tarkistaa niiden kunnon. `exercise-http`-BackendConfig tarkistaa polun `/` portissa `3000` kymmenen sekunnin välein ja odottaa vastausta enintään viisi sekuntia.
 
-```cmd
-set "PATH=%USERPROFILE%\bin;%PATH%"
-kubectl config use-context k3d-kurssi-network
-docker build -t log-output:2.5 log-output
-k3d image import log-output:2.5 -c kurssi-network
-kubectl -n exercises apply -f log-output\manifests\configmap.yaml -f log-output\manifests\deployment.yaml
-kubectl -n exercises rollout status deployment/log-output --timeout=120s
-```
+## Käyttöönotto
 
-### Testaus
+Ohje käyttää tehtävässä 3.1 luotua `dwk-cluster`-klusteria, `exercises`-namespacea ja Ping-pongin PostgreSQL-tietokantaa. Aja komennot Windowsin Google Cloud SDK Shellissä.
 
 ```cmd
-curl.exe -i http://localhost:8081/log
+cd /d "%USERPROFILE%\kubernetes-kurssi"
+set "GKE_CTX=gke_project-e08f1dba-8ab7-491a-90a_europe-north1-b_dwk-cluster"
+set "REGISTRY=europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi"
 ```
 
-Esimerkkivastaus, kun palvelin palauttaa `200 OK`.
+Rakenna ja lähetä sovellusten `3.2`-kuvat Artifact Registryyn.
 
-```text
-file content: this text is from file
-env variable: MESSAGE=hello world
-2026-11-09T21:46:26.317Z: 7ec0c6a7-9927-4a1e-a31a-8a4f6292698a
-Ping / Pongs: 2
+```cmd
+docker build --platform linux/amd64 -t "%REGISTRY%/ping-pong:3.2" ping-pong
+docker push "%REGISTRY%/ping-pong:3.2"
+docker build --platform linux/amd64 -t "%REGISTRY%/log-output:3.2" log-output
+docker push "%REGISTRY%/log-output:3.2"
 ```
 
-Toteutuksessa käytetty Kubernetesin ohje on [Configure a Pod to Use a ConfigMap](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/).
+Ota sovellukset ja Ingress käyttöön.
+
+```cmd
+kubectl --context="%GKE_CTX%" -n exercises apply -f ping-pong\gke\ping-pong.yaml -f log-output\gke
+kubectl --context="%GKE_CTX%" -n exercises rollout status deployment/ping-pong --timeout=300s
+kubectl --context="%GKE_CTX%" -n exercises rollout status deployment/log-output --timeout=300s
+kubectl --context="%GKE_CTX%" -n exercises get ingress exercises-ingress
+```
+
+## Testaus
+
+Käytä Ingressin `ADDRESS`-sarakkeessa näkyvää IP-osoitetta. Testissä osoite oli `136.81.5.12`.
+
+```cmd
+curl.exe -f http://136.81.5.12/pingpong
+curl.exe -f http://136.81.5.12/pingpong
+curl.exe -f http://136.81.5.12/log
+```
+
+Toisen `pong`-vastauksen luku kasvaa yhdellä. `/log` näyttää päivitetyn laskurin rivillä `Ping / Pongs`. Jos ensimmäinen vastaus on `pong 4` ja toinen `pong 5`, lokissa näkyy `Ping / Pongs: 6`.
