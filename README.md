@@ -23,3 +23,4 @@
 - 2.10 – The project, step 13: [Lokitus ja Grafana-testi](https://github.com/Aipera/kubernetes-kurssi/tree/2.10/monitoring)
 - [3.1 – Ping-pong GKE](ping-pong/gke/) ([release 3.1](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.1))
 - [3.2 – Back to Ingress](log-output/gke/) ([release 3.2](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.2))
+- [3.3 – Gateway API](https://github.com/Aipera/kubernetes-kurssi/tree/3.3/log-output/gke) ([release 3.3](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.3))
