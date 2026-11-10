@@ -1,0 +1,8 @@
+{
+  "name": "todo-backend",
+  "version": "2.8.0",
+  "private": true,
+  "dependencies": {
+    "pg": "^8.0.0"
+  }
+}
