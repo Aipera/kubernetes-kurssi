@@ -23,6 +23,12 @@ async function initializeCounter() {
 }
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('ok\n');
+    return;
+  }
+
   if (req.method !== 'GET' || (req.url !== '/pingpong' && req.url !== '/pongs')) {
     res.writeHead(404);
     res.end();

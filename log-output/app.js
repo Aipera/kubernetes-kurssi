@@ -14,6 +14,12 @@ async function readPingCount() {
 }
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('ok\n');
+    return;
+  }
+
   if (req.method !== 'GET' || req.url !== '/log') {
     res.writeHead(404);
     res.end();
@@ -28,8 +34,8 @@ const server = http.createServer(async (req, res) => {
 
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end(
-      `file content: ${information}\n` +
-      `env variable: MESSAGE=${process.env.MESSAGE}\n` +
+      `file content: ${information.trimEnd()}\n` +
+      `env variable: MESSAGE=${process.env.MESSAGE ?? ''}\n` +
       `${latestLine}\n` +
       `Ping / Pongs: ${count}\n`
     );

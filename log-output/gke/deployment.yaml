@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-output
+  namespace: exercises
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-output
+  template:
+    metadata:
+      labels:
+        app: log-output
+    spec:
+      volumes:
+        - name: shared-logs
+          emptyDir: {}
+        - name: log-output-config
+          configMap:
+            name: log-output-config
+            items:
+              - key: information.txt
+                path: information.txt
+      containers:
+        - name: writer
+          image: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/log-output:3.2
+          imagePullPolicy: IfNotPresent
+          command: ["node", "writer.js"]
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /shared
+        - name: reader
+          image: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/log-output:3.2
+          imagePullPolicy: IfNotPresent
+          command: ["node", "app.js"]
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: log-output-config
+                  key: MESSAGE
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /shared
+              readOnly: true
+            - name: log-output-config
+              mountPath: /config
+              readOnly: true

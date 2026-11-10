@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/ping-pong:3.1
+          image: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/ping-pong:3.2
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -48,8 +48,11 @@ kind: Service
 metadata:
   name: ping-pong
   namespace: exercises
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+    cloud.google.com/backend-config: '{"ports":{"80":"exercise-http"}}'
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: ping-pong
   ports:
