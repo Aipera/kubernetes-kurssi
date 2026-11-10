@@ -19,3 +19,4 @@
 - 2.6 – The project, step 10: [Todo App](https://github.com/Aipera/kubernetes-kurssi/tree/2.6/todo-app) · [Todo Backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.6/todo-backend)
 - 2.7 – Stateful applications: [Ping-pong](https://github.com/Aipera/kubernetes-kurssi/tree/2.7/ping-pong)
 - 2.8 – The project, step 11: [Todo Backend](https://github.com/Aipera/kubernetes-kurssi/tree/2.8/todo-backend)
+- 2.9 – The project, step 12: [Wikipedia CronJob](https://github.com/Aipera/kubernetes-kurssi/blob/2.9/todo-backend/manifests/read-wikipedia-cronjob.yaml)
