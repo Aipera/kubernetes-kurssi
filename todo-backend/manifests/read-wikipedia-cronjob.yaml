@@ -1,0 +1,84 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: read-wikipedia
+  namespace: project
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: read-wikipedia
+              image: node:22-alpine
+              env:
+                - name: WIKIPEDIA_RANDOM_URL
+                  value: "https://en.wikipedia.org/wiki/Special:Random"
+                - name: WIKIPEDIA_USER_AGENT
+                  value: "KubernetesTodoCourse/1.0 (https://github.com/Aipera/kubernetes-kurssi)"
+                - name: TODO_API_URL
+                  value: "http://todo-backend/todos"
+                - name: TODO_MAX_LENGTH
+                  value: "140"
+              command: ["node", "-e"]
+              args:
+                - |
+                  const randomUrl = new URL(process.env.WIKIPEDIA_RANDOM_URL);
+                  const maxLength = Number(process.env.TODO_MAX_LENGTH);
+
+                  async function selectTodo() {
+                    for (let attempt = 0; attempt < 5; attempt += 1) {
+                      const response = await fetch(randomUrl, {
+                        redirect: 'manual',
+                        cache: 'no-store',
+                        headers: { 'User-Agent': process.env.WIKIPEDIA_USER_AGENT },
+                        signal: AbortSignal.timeout(15000)
+                      });
+
+                      const location = response.headers.get('location');
+                      await response.body?.cancel();
+
+                      if (response.status < 300 || response.status >= 400 || !location) {
+                        throw new Error(`Wikipedia HTTP ${response.status}: expected a redirect`);
+                      }
+
+                      const article = new URL(location, randomUrl);
+                      if (article.origin !== randomUrl.origin ||
+                          !article.pathname.startsWith('/wiki/') ||
+                          article.pathname === randomUrl.pathname) {
+                        throw new Error('Wikipedia redirect did not point to an article');
+                      }
+
+                      const text = `Read ${article.href}`;
+                      if (text.length <= maxLength) return text;
+                    }
+
+                    throw new Error('Could not find an article URL short enough for a todo');
+                  }
+
+                  async function main() {
+                    const text = await selectTodo();
+                    const response = await fetch(process.env.TODO_API_URL, {
+                      method: 'POST',
+                      redirect: 'error',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ text }),
+                      signal: AbortSignal.timeout(15000)
+                    });
+
+                    if (response.status !== 201) {
+                      throw new Error(`Todo API HTTP ${response.status}: ${await response.text()}`);
+                    }
+
+                    await response.body?.cancel();
+                    console.log(`Created todo: ${text}`);
+                  }
+
+                  main().catch((error) => {
+                    console.error(error.message);
+                    process.exitCode = 1;
+                  });
