@@ -17,8 +17,31 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: ping-pong:2.1
+          image: ping-pong:2.7
           imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: PGHOST
+              value: ping-pong-postgres
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: pingpong
+            - name: PGDATABASE
+              value: pingpong
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ping-pong-postgres-auth
+                  key: password
+          readinessProbe:
+            httpGet:
+              path: /pongs
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 6
 ---
 apiVersion: v1
 kind: Service

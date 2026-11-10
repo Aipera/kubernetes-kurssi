@@ -1,0 +1,8 @@
+{
+  "name": "ping-pong",
+  "version": "2.7.0",
+  "private": true,
+  "dependencies": {
+    "pg": "^8.0.0"
+  }
+}
