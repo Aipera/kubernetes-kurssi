@@ -1,56 +1,45 @@
-# 3.3 – Gateway API
+# 3.4 – Route rewriting
 
-Gateway API korvaa tehtävän 3.2 Ingressin. `exercises-gateway` kuuntelee HTTP-liikennettä portissa 80, ja `exercises-route` ohjaa pyynnöt oikeille palveluille.
+Gateway API muuntaa julkisen `/pingpong`-pyynnön poluksi `/` ennen sen välittämistä Ping-pongille. `HTTPRoute` käyttää tähän `URLRewrite`-suodatinta ja `ReplacePrefixMatch`-asetusta.
 
-| Reitti | Service | Toiminta |
-| --- | --- | --- |
-| `/pingpong` | `ping-pong-gateway` | Palauttaa `pong N` ja kasvattaa PostgreSQL-laskuria |
-| `/log` | `log-output-gateway` | Näyttää uusimman lokirivin ja laskurin nykyisen arvon |
-
-Log output lukee laskurin klusterin sisällä osoitteesta `http://ping-pong/pongs`. Sovellukset käyttävät tehtävän 3.2 konttikuvia.
+Ping-pong kasvattaa PostgreSQL-laskuria reitillä `GET /`. Klusterin sisäinen `/pongs` lukee laskurin arvon, ja sitä käyttävät sekä Log output että Gatewayn terveystarkistus. Julkinen `/log` näyttää laskurin nykyisen arvon.
 
 ## Käyttöönotto
 
-Ohje olettaa, että Log output, Ping-pong ja PostgreSQL ovat käynnissä GKE-klusterin `exercises`-namespacessa. Aja komennot Windowsin Google Cloud SDK Shellissä.
+Ohje käyttää tehtävässä 3.3 luotua GKE Gatewayta. Aja komennot Windowsin Google Cloud SDK Shellissä repositorion juuresta.
 
 ```cmd
 cd /d "%USERPROFILE%\kubernetes-kurssi"
 set "GKE_CTX=gke_project-e08f1dba-8ab7-491a-90a_europe-north1-b_dwk-cluster"
+set "REGISTRY=europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi"
 ```
 
-Ota Gateway API käyttöön, jos sitä ei ole vielä otettu käyttöön tässä klusterissa.
+Ota terveystarkistus käyttöön ensin. Jatka, kun `ping-pong-gateway`-rivi näyttää portin `3000` ja polun `/pongs`.
 
 ```cmd
-gcloud container clusters update dwk-cluster --location=europe-north1-b --project=project-e08f1dba-8ab7-491a-90a --gateway-api=standard
-kubectl --context="%GKE_CTX%" get gatewayclass
+kubectl --context="%GKE_CTX%" -n exercises apply -f log-output\gke\ping-pong-health.yaml
+gcloud compute health-checks list --global --project=project-e08f1dba-8ab7-491a-90a --format="table(name,httpHealthCheck.port,httpHealthCheck.requestPath)"
 ```
 
-Kun `gke-l7-global-external-managed` on hyväksytty, ota Gateway ja reitit käyttöön.
+Rakenna ja julkaise uusi Ping-pong-kuva. Ota sitten Deployment ja reitityssääntö käyttöön.
 
 ```cmd
-kubectl --context="%GKE_CTX%" -n exercises apply -f log-output\gke\routing.yaml
-kubectl --context="%GKE_CTX%" -n exercises wait --for=condition=Programmed gateway/exercises-gateway --timeout=900s
-kubectl --context="%GKE_CTX%" -n exercises get gateway,httproute
+docker build --platform linux/amd64 -t "%REGISTRY%/ping-pong:3.4" ping-pong
+docker push "%REGISTRY%/ping-pong:3.4"
+kubectl --context="%GKE_CTX%" -n exercises apply -f ping-pong\gke\ping-pong.yaml -f log-output\gke\routing.yaml
+kubectl --context="%GKE_CTX%" -n exercises rollout status deployment/ping-pong --timeout=300s
+kubectl --context="%GKE_CTX%" -n exercises get gateway exercises-gateway
 ```
 
 ## Testaus
 
-Käytä Gatewayn `ADDRESS`-sarakkeessa näkyvää IP-osoitetta. Tässä testissä osoite oli `136.82.24.113`.
+Käytä Gatewayn `ADDRESS`-sarakkeessa näkyvää osoitetta. Testissä osoite oli `136.82.24.113`.
 
 ```cmd
+curl.exe -f http://136.82.24.113/pingpong
+curl.exe -f http://136.82.24.113/pingpong
 curl.exe -f http://136.82.24.113/pingpong
 curl.exe -f http://136.82.24.113/log
 ```
 
-Lopputestissä `/pingpong` palautti `pong 10`, ja `/log` näytti päivitetyn arvon `Ping / Pongs: 11`.
-
-## Vanhan Ingressin poistaminen
-
-Jos klusterissa on vielä tehtävän 3.2 Ingress, poista se, kun molemmat reitit toimivat Gatewayn kautta. Ota sitten käyttöön päivitetty sisäinen `ping-pong`-Service ja poista vanhat Ingressin resurssit.
-
-```cmd
-kubectl --context="%GKE_CTX%" -n exercises delete ingress exercises-ingress --ignore-not-found
-kubectl --context="%GKE_CTX%" -n exercises apply -f ping-pong\gke\ping-pong.yaml
-kubectl --context="%GKE_CTX%" -n exercises delete service/log-output backendconfig/exercise-http --ignore-not-found
-kubectl --context="%GKE_CTX%" -n exercises get gateway,httproute,ingress
-```
+Testissä kolme `/pingpong`-pyyntöä palauttivat `pong 11`, `pong 12` ja `pong 13`. `/log` näytti sen jälkeen `Ping / Pongs: 14`.
