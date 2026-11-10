@@ -1,18 +1,44 @@
 const http = require('node:http');
 const { readFile, rename, stat, writeFile } = require('node:fs/promises');
 
-const port = Number(process.env.PORT ?? 3000);
-const imagePath = '/cache/image.jpg';
-const maxAgeMs = 10 * 60 * 1000;
+function positiveInteger(name, max = Number.MAX_SAFE_INTEGER) {
+  const value = Number(process.env[name]);
+  if (!Number.isSafeInteger(value) || value < 1 || value > max) {
+    throw new Error(`${name} must be an integer between 1 and ${max}`);
+  }
+  return value;
+}
+
+const port = positiveInteger('PORT', 65535);
+const host = process.env.HOST;
+const homePath = process.env.HOME_PATH;
+const imageRoute = process.env.IMAGE_ROUTE;
+const todosPath = process.env.TODOS_PATH;
+const imageUrl = new URL(process.env.IMAGE_URL);
+const imagePath = process.env.IMAGE_CACHE_PATH;
+const maxAgeMs = positiveInteger('IMAGE_CACHE_TTL_MS');
+const fetchTimeoutMs = positiveInteger('IMAGE_FETCH_TIMEOUT_MS', 2147483647);
+const maxTodoLength = positiveInteger('TODO_MAX_LENGTH');
+
+const localPath = /^\/(?!\/)[A-Za-z0-9._~/-]*$/;
+if (![homePath, imageRoute, todosPath].every((path) => localPath.test(path))) {
+  throw new Error('HOME_PATH, IMAGE_ROUTE and TODOS_PATH must be local URL paths');
+}
+if (!host || !imagePath) {
+  throw new Error('HOST and IMAGE_CACHE_PATH are required');
+}
+
 let download;
 
 async function downloadImage() {
-  const response = await fetch(`https://picsum.photos/1200?random=${Date.now()}`, {
-    signal: AbortSignal.timeout(15000)
+  const url = new URL(imageUrl);
+  url.searchParams.set('random', String(Date.now()));
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(fetchTimeoutMs)
   });
 
   if (!response.ok) {
-    throw new Error(`Picsum returned HTTP ${response.status}`);
+    throw new Error(`Image source returned HTTP ${response.status}`);
   }
 
   const image = Buffer.from(await response.arrayBuffer());
@@ -41,7 +67,7 @@ async function getImage() {
 }
 
 const server = http.createServer(async (req, res) => {
-  if (req.method === 'GET' && req.url === '/') {
+  if (req.method === 'GET' && req.url === homePath) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(`<!doctype html>
 <html lang="fi">
@@ -56,12 +82,12 @@ const server = http.createServer(async (req, res) => {
 </head>
 <body>
   <h1>Todo App</h1>
-  <img src="/image.jpg" alt="Satunnainen kuva Lorem Picsumista">
+  <img src="${imageRoute}" alt="Satunnainen kuva">
 
   <section aria-labelledby="todos-heading">
-    <form id="todo-form">
-      <label for="new-todo">Uusi tehtävä (enintään 140 merkkiä)</label><br>
-      <input id="new-todo" name="todo" type="text" maxlength="140"
+    <form id="todo-form" data-todos-path="${todosPath}">
+      <label for="new-todo">Uusi tehtävä (enintään ${maxTodoLength} merkkiä)</label><br>
+      <input id="new-todo" name="todo" type="text" maxlength="${maxTodoLength}"
              placeholder="Kirjoita uusi tehtävä" required>
       <button type="submit" disabled>Send</button>
     </form>
@@ -79,9 +105,10 @@ const server = http.createServer(async (req, res) => {
     const list = document.getElementById('todo-list');
     const status = document.getElementById('todo-status');
     const button = form.querySelector('button');
+    const todosPath = form.dataset.todosPath;
 
     async function loadTodos() {
-      const response = await fetch('/todos', { cache: 'no-store' });
+      const response = await fetch(todosPath, { cache: 'no-store' });
       if (!response.ok) {
         throw new Error('Tehtävälistaa ei saatu ladattua.');
       }
@@ -102,7 +129,7 @@ const server = http.createServer(async (req, res) => {
       button.disabled = true;
 
       try {
-        const response = await fetch('/todos', {
+        const response = await fetch(todosPath, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: input.value })
@@ -135,7 +162,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === 'GET' && req.url === '/image.jpg') {
+  if (req.method === 'GET' && req.url === imageRoute) {
     try {
       const image = await getImage();
       res.writeHead(200, {
@@ -155,6 +182,6 @@ const server = http.createServer(async (req, res) => {
   res.end();
 });
 
-server.listen(port, '0.0.0.0', () => {
+server.listen(port, host, () => {
   console.log(`Server started in port ${port}`);
 });

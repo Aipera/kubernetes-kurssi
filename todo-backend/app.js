@@ -1,10 +1,23 @@
 const http = require('node:http');
 
-const todos = [
-  'Opettele Kubernetesin perusteet',
-  'Vie sovellus klusteriin',
-  'Ota käyttöön pysyvä tallennustila'
-];
+function positiveInteger(name, max = Number.MAX_SAFE_INTEGER) {
+  const value = Number(process.env[name]);
+  if (!Number.isSafeInteger(value) || value < 1 || value > max) {
+    throw new Error(`${name} must be an integer between 1 and ${max}`);
+  }
+  return value;
+}
+
+const port = positiveInteger('PORT', 65535);
+const host = process.env.HOST;
+const todosPath = process.env.TODOS_PATH;
+const maxBodyBytes = positiveInteger('MAX_BODY_BYTES');
+const maxTodoLength = positiveInteger('TODO_MAX_LENGTH');
+const todos = JSON.parse(process.env.INITIAL_TODOS);
+
+if (!host || !todosPath?.startsWith('/') || !Array.isArray(todos)) {
+  throw new Error('HOST, TODOS_PATH and a JSON array in INITIAL_TODOS are required');
+}
 
 function sendJson(res, status, data) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -12,7 +25,7 @@ function sendJson(res, status, data) {
 }
 
 const server = http.createServer(async (req, res) => {
-  if (req.url !== '/todos') {
+  if (req.url !== todosPath) {
     sendJson(res, 404, { error: 'Reittiä ei löydy.' });
     return;
   }
@@ -34,13 +47,13 @@ const server = http.createServer(async (req, res) => {
   try {
     for await (const chunk of req) {
       bytes += chunk.length;
-      if (bytes <= 4096) body += chunk;
+      if (bytes <= maxBodyBytes) body += chunk;
     }
   } catch {
     return;
   }
 
-  if (bytes > 4096) {
+  if (bytes > maxBodyBytes) {
     sendJson(res, 413, { error: 'Pyyntö on liian suuri.' });
     return;
   }
@@ -54,8 +67,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   const text = typeof payload?.text === 'string' ? payload.text.trim() : '';
-  if (text.length < 1 || text.length > 140) {
-    sendJson(res, 400, { error: 'Tehtävän pituuden pitää olla 1–140 merkkiä.' });
+  if (text.length < 1 || text.length > maxTodoLength) {
+    sendJson(res, 400, {
+      error: `Tehtävän pituuden pitää olla 1–${maxTodoLength} merkkiä.`
+    });
     return;
   }
 
@@ -63,4 +78,4 @@ const server = http.createServer(async (req, res) => {
   sendJson(res, 201, { text });
 });
 
-server.listen(3000, '0.0.0.0');
+server.listen(port, host);

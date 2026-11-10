@@ -15,8 +15,24 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: todo-backend:2.2
+          image: todo-backend:2.6
           imagePullPolicy: IfNotPresent
+          env:
+            - name: PORT
+              value: "3000"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: TODOS_PATH
+              value: "/todos"
+            - name: MAX_BODY_BYTES
+              value: "4096"
+            - name: TODO_MAX_LENGTH
+              value: "140"
+            - name: INITIAL_TODOS
+              value: >-
+                ["Opettele Kubernetesin perusteet",
+                 "Vie sovellus klusteriin",
+                 "Ota käyttöön pysyvä tallennustila"]
 ---
 apiVersion: v1
 kind: Service

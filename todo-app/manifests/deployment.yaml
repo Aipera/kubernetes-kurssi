@@ -17,11 +17,29 @@ spec:
     spec:
       containers:
         - name: todo-app
-          image: todo-app:2.2
+          image: todo-app:2.6
           imagePullPolicy: IfNotPresent
           env:
             - name: PORT
               value: "8080"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: HOME_PATH
+              value: "/"
+            - name: IMAGE_ROUTE
+              value: "/image.jpg"
+            - name: TODOS_PATH
+              value: "/todos"
+            - name: IMAGE_URL
+              value: "https://picsum.photos/1200"
+            - name: IMAGE_CACHE_PATH
+              value: "/cache/image.jpg"
+            - name: IMAGE_CACHE_TTL_MS
+              value: "600000"
+            - name: IMAGE_FETCH_TIMEOUT_MS
+              value: "15000"
+            - name: TODO_MAX_LENGTH
+              value: "140"
           volumeMounts:
             - name: image-cache
               mountPath: /cache
