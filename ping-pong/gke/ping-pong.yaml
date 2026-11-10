@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/ping-pong:3.2
+          image: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/ping-pong:3.4
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

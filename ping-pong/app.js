@@ -23,13 +23,7 @@ async function initializeCounter() {
 }
 
 const server = http.createServer(async (req, res) => {
-  if (req.method === 'GET' && req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('ok\n');
-    return;
-  }
-
-  if (req.method !== 'GET' || (req.url !== '/pingpong' && req.url !== '/pongs')) {
+  if (req.method !== 'GET' || (req.url !== '/' && req.url !== '/pongs')) {
     res.writeHead(404);
     res.end();
     return;
@@ -38,7 +32,7 @@ const server = http.createServer(async (req, res) => {
   try {
     let response;
 
-    if (req.url === '/pingpong') {
+    if (req.url === '/') {
       const { rows } = await pool.query(`
         UPDATE ping_counter
         SET count = count + 1

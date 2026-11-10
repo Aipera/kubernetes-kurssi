@@ -47,8 +47,14 @@ spec:
   rules:
     - matches:
         - path:
-            type: Exact
+            type: PathPrefix
             value: /pingpong
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
       backendRefs:
         - name: ping-pong-gateway
           port: 80
