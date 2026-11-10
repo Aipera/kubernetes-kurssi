@@ -57,6 +57,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  const requestLog = { event: 'todo_request', method: req.method, path: req.url };
+  if (req.method === 'POST') {
+    res.once('finish', () => {
+      console.log(JSON.stringify({ ...requestLog, status: res.statusCode }));
+    });
+  }
+
   try {
     if (req.method === 'GET') {
       const { rows } = await pool.query('SELECT text FROM todos ORDER BY id');
@@ -72,7 +79,6 @@ const server = http.createServer(async (req, res) => {
 
     const chunks = [];
     let bytes = 0;
-
     try {
       for await (const chunk of req) {
         bytes += chunk.length;
@@ -83,6 +89,8 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (bytes > maxBodyBytes) {
+      requestLog.reason = 'body_too_large';
+      requestLog.bodyBytes = bytes;
       sendJson(res, 413, { error: 'Pyyntö on liian suuri.' });
       return;
     }
@@ -91,12 +99,18 @@ const server = http.createServer(async (req, res) => {
     try {
       payload = JSON.parse(Buffer.concat(chunks).toString('utf8'));
     } catch {
+      requestLog.reason = 'invalid_json';
       sendJson(res, 400, { error: 'Pyynnön pitää sisältää kelvollista JSONia.' });
       return;
     }
 
-    const text = typeof payload?.text === 'string' ? payload.text.trim() : '';
+    const submittedText = typeof payload?.text === 'string' ? payload.text : '';
+    const text = submittedText.trim();
+    requestLog.text = submittedText;
+    requestLog.length = text.length;
+
     if (text.length < 1 || text.length > maxTodoLength) {
+      requestLog.reason = text.length > maxTodoLength ? 'too_long' : 'empty_or_invalid';
       sendJson(res, 400, {
         error: `Tehtävän pituuden pitää olla 1–${maxTodoLength} merkkiä.`
       });
@@ -104,8 +118,10 @@ const server = http.createServer(async (req, res) => {
     }
 
     await pool.query('INSERT INTO todos (text) VALUES ($1)', [text]);
+    requestLog.reason = 'accepted';
     sendJson(res, 201, { text });
   } catch (error) {
+    requestLog.reason = 'database_error';
     console.error('Todo database query failed:', error);
     sendJson(res, 503, { error: 'Tietokanta ei ole juuri nyt käytettävissä.' });
   }

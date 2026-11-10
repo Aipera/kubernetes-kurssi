@@ -1,0 +1,20 @@
+cluster:
+  name: kurssi-network
+
+destinations:
+  localLoki:
+    type: loki
+    url: http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push
+    tenantId: "1"
+
+podLogsViaLoki:
+  enabled: true
+  collector: alloy-logs
+  namespaces: [project]
+
+collectors:
+  alloy-logs:
+    presets: [filesystem-log-reader, daemonset]
+
+selfReporting:
+  enabled: false
