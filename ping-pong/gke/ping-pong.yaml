@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ping-pong
+  namespace: exercises
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ping-pong
+  template:
+    metadata:
+      labels:
+        app: ping-pong
+    spec:
+      containers:
+        - name: ping-pong
+          image: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/ping-pong:3.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: PGHOST
+              value: ping-pong-postgres
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: pingpong
+            - name: PGDATABASE
+              value: pingpong
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ping-pong-postgres-auth
+                  key: password
+          readinessProbe:
+            httpGet:
+              path: /pongs
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 6
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ping-pong
+  namespace: exercises
+spec:
+  type: LoadBalancer
+  selector:
+    app: ping-pong
+  ports:
+    - port: 80
+      targetPort: 3000
