@@ -47,7 +47,7 @@ EOF
     kubectl -n "$namespace" create secret generic todo-postgres-auth --from-literal="password=$password"
   fi
 
-  preview_host="$namespace.$TODO_GATEWAY_IP.sslip.io"
+  preview_host="${namespace}.gke.${TODO_GATEWAY_IP}.sslip.io"
   cat > .todo-preview-route-patch.yaml <<EOF
 - op: add
   path: /spec/hostnames
