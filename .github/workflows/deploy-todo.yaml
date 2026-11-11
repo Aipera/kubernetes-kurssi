@@ -1,0 +1,67 @@
+name: Deploy Todo to GKE
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: todo-project-gke
+  cancel-in-progress: false
+
+env:
+  GKE_PROJECT_ID: project-e08f1dba-8ab7-491a-90a
+  GAR_HOST: europe-north1-docker.pkg.dev
+  GAR_REPOSITORY: kurssi
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: imranismail/setup-kustomize@v3
+
+      - name: Build images
+        run: |
+          image_root="$GAR_HOST/$GKE_PROJECT_ID/$GAR_REPOSITORY"
+          todo_app_image="$image_root/todo-app:$GITHUB_SHA"
+          todo_backend_image="$image_root/todo-backend:$GITHUB_SHA"
+          docker build --platform linux/amd64 -t "$todo_app_image" todo-app
+          docker build --platform linux/amd64 -t "$todo_backend_image" todo-backend
+          printf 'TODO_APP_IMAGE=%s\nTODO_BACKEND_IMAGE=%s\n' "$todo_app_image" "$todo_backend_image" >> "$GITHUB_ENV"
+
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ env.GKE_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+        with:
+          install_components: kubectl
+
+      - name: Publish images
+        run: |
+          gcloud auth configure-docker "$GAR_HOST" --quiet
+          docker push "$TODO_APP_IMAGE"
+          docker push "$TODO_BACKEND_IMAGE"
+
+      - uses: google-github-actions/get-gke-credentials@v3
+        with:
+          project_id: ${{ env.GKE_PROJECT_ID }}
+          cluster_name: dwk-cluster
+          location: europe-north1-b
+
+      - name: Deploy with Kustomize
+        run: |
+          kustomize edit set image "todo-app=$TODO_APP_IMAGE" "todo-backend=$TODO_BACKEND_IMAGE"
+          kubectl -n project apply -k .
+          kubectl -n project rollout status deployment/todo-backend --timeout=300s
+          kubectl -n project rollout status deployment/todo-app --timeout=300s
+          kubectl -n project get deployment todo-app todo-backend -o wide
