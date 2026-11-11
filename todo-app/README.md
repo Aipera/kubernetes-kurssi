@@ -15,5 +15,3 @@ Esikatseluympäristöllä on omat Todo-sovelluksensa, PostgreSQL-tietokantansa j
 2. Avaa GitHub Actionsissa `testi-37`-haaran onnistunut ajo. Avaa **deploy → Deploy with Kustomize** ja kopioi lokista **Preview URL**.
 3. Avaa esikatselu, lisää tehtävä `Testi 3.7` ja päivitä sivu. Tarkista, että tehtävä näkyy yhä listassa.
 4. Avaa taulukosta `main`-haaran Todo App ja varmista, että testitehtävä näkyy vain esikatselussa.
-
-[GitHub Actions -työnkulku](.github/workflows/deploy-todo.yaml) · [Julkaisuskripti](gke/deploy-todo.sh)
