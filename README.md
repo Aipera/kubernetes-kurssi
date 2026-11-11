@@ -25,3 +25,4 @@
 - [3.2 – Back to Ingress](log-output/gke/) ([release 3.2](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.2))
 - [3.3 – Gateway API](https://github.com/Aipera/kubernetes-kurssi/tree/3.3/log-output/gke) ([release 3.3](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.3))
 - [3.4 – Route rewriting](https://github.com/Aipera/kubernetes-kurssi/tree/3.4/log-output/gke) ([release 3.4](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.4))
+- [3.5 – Todo with Kustomize](https://github.com/Aipera/kubernetes-kurssi/tree/3.5/gke) ([release 3.5](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.5))
