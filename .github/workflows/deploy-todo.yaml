@@ -19,6 +19,7 @@ env:
 
 jobs:
   deploy:
+    if: ${{ github.event.deleted == false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -59,9 +60,6 @@ jobs:
           location: europe-north1-b
 
       - name: Deploy with Kustomize
-        run: |
-          kustomize edit set image "todo-app=$TODO_APP_IMAGE" "todo-backend=$TODO_BACKEND_IMAGE"
-          kubectl -n project apply -k .
-          kubectl -n project rollout status deployment/todo-backend --timeout=300s
-          kubectl -n project rollout status deployment/todo-app --timeout=300s
-          kubectl -n project get deployment todo-app todo-backend -o wide
+        env:
+          TODO_GATEWAY_IP: '136.82.24.113'
+        run: bash gke/deploy-todo.sh
