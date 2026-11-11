@@ -27,3 +27,4 @@
 - [3.4 – Route rewriting](https://github.com/Aipera/kubernetes-kurssi/tree/3.4/log-output/gke) ([release 3.4](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.4))
 - [3.5 – Todo with Kustomize](https://github.com/Aipera/kubernetes-kurssi/tree/3.5/gke) ([release 3.5](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.5))
 - [3.6 – Automatic deployment](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.6) ([workflow](https://github.com/Aipera/kubernetes-kurssi/blob/3.6/.github/workflows/deploy-todo.yaml))
+[3.7 - GitHub Actions -työnkulku](.github/workflows/deploy-todo.yaml) · [Julkaisuskripti](gke/deploy-todo.sh)
