@@ -1,0 +1,68 @@
+name: Delete Todo preview environment
+
+on: delete
+
+concurrency:
+  group: todo-environment-${{ github.event.ref }}
+  queue: max
+
+jobs:
+  cleanup:
+    if: github.event.ref_type == 'branch' && github.event.ref != 'main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: projects/project-e08f1dba-8ab7-491a-90a/locations/europe-north1-b/clusters/dwk-cluster
+
+      - name: Delete preview namespace
+        shell: bash
+        env:
+          BRANCH: ${{ github.event.ref }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$BRANCH" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]]; then
+            printf 'No preview for branch %s\n' "$BRANCH"
+            exit 0
+          fi
+
+          namespace="preview-$BRANCH"
+          if (( ${#namespace} > 63 )); then
+            branch_hash="$(printf '%s' "$BRANCH" | sha256sum)"
+            namespace="preview-${BRANCH:0:42}-${branch_hash:0:12}"
+          fi
+
+          remote_ref="$(git ls-remote --refs origin "refs/heads/$BRANCH")"
+          if [[ -n "$remote_ref" ]]; then
+            printf 'Branch %s exists again. Keeping %s.\n' "$BRANCH" "$namespace"
+            exit 0
+          fi
+
+          namespace_json="$(kubectl get namespace "$namespace" --ignore-not-found -o json)"
+          if [[ -z "$namespace_json" ]]; then
+            printf 'Namespace %s is already absent.\n' "$namespace"
+            exit 0
+          fi
+
+          namespace_branch="$(jq -r '.metadata.labels["kurssi-preview-branch"] // ""' <<< "$namespace_json")"
+          if [[ "$namespace_branch" != "$BRANCH" ]]; then
+            printf 'Namespace %s is not assigned to branch %s\n' "$namespace" "$BRANCH" >&2
+            exit 1
+          fi
+
+          kubectl delete namespace "$namespace" --ignore-not-found --wait=true --timeout=300s
+          printf 'Removed preview namespace %s\n' "$namespace"
