@@ -30,3 +30,4 @@
 - [3.7 - GitHub Actions -työnkulku](.github/workflows/deploy-todo.yaml) · [Julkaisuskripti](gke/deploy-todo.sh)
 - [3.8 - Poistotyönkulku](https://github.com/Aipera/kubernetes-kurssi/tree/3.8/todo-app)
 - [3.9 - DBaaS vs DIY](https://github.com/Aipera/kubernetes-kurssi/tree/3.9/todo-app)
+- [3.10 CronJobin ja Kubernetes-palvelutilin manifesti](../gke/todo-db-backup.yaml)
