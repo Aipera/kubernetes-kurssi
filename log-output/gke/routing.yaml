@@ -39,12 +39,8 @@ spec:
         namespaces:
           from: Selector
           selector:
-            matchExpressions:
-              - key: kubernetes.io/metadata.name
-                operator: In
-                values:
-                  - exercises
-                  - project
+            matchLabels:
+              kurssi-gateway: enabled
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
