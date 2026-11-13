@@ -62,4 +62,14 @@ jobs:
       - name: Deploy with Kustomize
         env:
           TODO_GATEWAY_IP: '136.82.24.113'
-        run: bash gke/deploy-todo.sh
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          remote_refs="$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/heads/$GITHUB_REF_NAME" --jq '.[].ref')"
+          if ! grep -Fxq -- "refs/heads/$GITHUB_REF_NAME" <<< "$remote_refs"; then
+            printf 'Branch %s has been deleted. Skipping deployment.\n' "$GITHUB_REF_NAME"
+            exit 0
+          fi
+
+          bash gke/deploy-todo.sh
