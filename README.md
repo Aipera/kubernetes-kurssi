@@ -29,4 +29,4 @@
 - [3.6 – Automatic deployment](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.6) ([workflow](https://github.com/Aipera/kubernetes-kurssi/blob/3.6/.github/workflows/deploy-todo.yaml))
 - [3.7 - GitHub Actions -työnkulku](.github/workflows/deploy-todo.yaml) · [Julkaisuskripti](gke/deploy-todo.sh)
 - [3.8 - Poistotyönkulku](https://github.com/Aipera/kubernetes-kurssi/tree/3.8/todo-app)
-
+- [3.9 – DBaaS vs DIY](https://github.com/Aipera/kubernetes-kurssi/blob/3.9/todo-app/README.md#39--dbaas-vs-diy) ([release 3.9](https://github.com/Aipera/kubernetes-kurssi/releases/tag/3.9))
