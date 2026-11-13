@@ -9,8 +9,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: ${{ github.ref_name == 'main' && 'todo-project-gke' || format('todo-preview-{0}', github.ref_name) }}
-  cancel-in-progress: false
+  group: todo-environment-${{ github.ref_name }}
+  queue: max
 
 env:
   GKE_PROJECT_ID: project-e08f1dba-8ab7-491a-90a
