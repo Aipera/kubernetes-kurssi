@@ -1,12 +1,17 @@
-## 3.9 – DBaaS vs DIY
+## 3.10 – PostgreSQL-varmuuskopio Cloud Storageen
 
-Todo-projektissa PostgreSQL 16 ajetaan GKE:ssä yhden replikan `StatefulSet`-resurssina. Tietokannan tiedot tallennetaan 10 GiB:n `standard-rwo`-levyvaraukseen (PVC). Hallittu vaihtoehto olisi Google Cloud SQL for PostgreSQL.
+GKE:n `project`-namespacessa toimiva `todo-db-backup`-CronJob
+varmuuskopioi `todo`-tietokannan päivittäin klo 02.00 UTC.
+`pg_dump` luo varmuuskopion, ja `pg_restore --list` tarkistaa,
+että sen sisällysluettelo on luettavissa. Toinen kontti tallentaa
+tiedoston Cloud Storageen polkuun `gs://dwk-todo-backups-284715909721/todo/`.
 
-| Näkökulma | Cloud SQL (DBaaS) | Oma PostgreSQL GKE:ssä (DIY) |
-| --- | --- | --- |
-| Käyttöönotto | Luon Cloud SQL -instanssin ja tietokannan sekä määritän verkon, käyttöoikeudet ja backendin yhteyden. GKE:ssä yhteyden voi toteuttaa Cloud SQL Auth Proxylla. Google huolehtii tietokantapalvelimen käyttöönotosta. [GKE-yhteysohje](https://docs.cloud.google.com/sql/docs/postgres/connect-kubernetes-engine) | Nykyisessä klusterissa riittävät PostgreSQL-konttikuva, StatefulSet, Service, Secret ja PVC. GKE varaa levyn PVC:n perusteella. Projektissa nämä manifestit ovat jo käytössä. [GKE:n levyohje](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/gce-pd-csi-driver) |
-| Kustannukset | Erillinen Cloud SQL -instanssi lisää laskuun laskenta-, levy- ja varmuuskopiointikuluja. Hinta riippuu alueesta, koosta ja saatavuusasetuksista. [Cloud SQL -hinnoittelu](https://cloud.google.com/sql/pricing) | Jos nykyisissä GKE-nodeissa on vapaata kapasiteettia, tietokannalle ei tarvita lisää nodeja. Pysyvä levy ja varmuuskopioiden säilytys maksavat. Jos kapasiteettia pitää lisätä, myös nodekulut kasvavat. Lisäksi oma ylläpitotyö vie aikaa. [GKE-hinnoittelu](https://cloud.google.com/kubernetes-engine/pricing) · [Cloud Storage -hinnoittelu](https://cloud.google.com/storage/pricing) |
-| Ylläpito | Google hoitaa palvelininfrastruktuurin ja ylläpitopäivitykset. Käyttäjälle jäävät esimerkiksi tietokannan käyttöoikeudet, kapasiteetin mitoitus ja kyselyiden suorituskyky. [Cloud SQL -ylläpito](https://docs.cloud.google.com/sql/docs/postgres/maintenance) | Voin valita PostgreSQL-version ja säätää asetuksia itse. Samalla vastaan päivityksistä, valvonnasta, levytilasta ja häiriöistä. Nykyisellä yhdellä replikalla ei ole toista tietokantainstanssia ottamassa liikennettä vian aikana. |
-| Varmuuskopiointi ja palautus | Cloud SQL tarjoaa ajastetut ja manuaaliset varmuuskopiot. Palautus onnistuu palvelun työkaluilla. Käyttöön otettu PITR mahdollistaa palautuksen valittuun ajanhetkeen säilytysajan puitteissa. [Varmuuskopiot](https://docs.cloud.google.com/sql/docs/postgres/backup-recovery/backups) · [PITR](https://docs.cloud.google.com/sql/docs/postgres/backup-recovery/pitr) | Voin ajastaa `pg_dump -Fc`-varmuuskopion CronJobilla, tallentaa sen Cloud Storageen ja palauttaa sen `pg_restore`-komennolla. Minun pitää määrittää säilytys, seurata ajoja ja testata palautus. Päivittäisestä dumpista voi palauttaa vain kopiointihetken tilan. Tarkempi palautus vaatii esimerkiksi perusvarmuuskopion ja WAL-lokien arkistoinnin. [pg_dump](https://www.postgresql.org/docs/16/app-pgdump.html) · [pg_restore](https://www.postgresql.org/docs/16/app-pgrestore.html) · [WAL-arkistointi](https://www.postgresql.org/docs/16/continuous-archiving.html) |
+CronJob tunnistautuu Google Cloudiin Workload Identity Federationilla.
+Kubernetesin `todo-backup`-palvelutili käyttää Google Cloudin
+`todo-backup-storage`-palvelutilin bucket-oikeuksia.
 
-Pitäisin oman PostgreSQL:n tässä pienessä kurssiprojektissa, koska se toimii jo olemassa olevassa klusterissa ja antaa mahdollisuuden harjoitella varmuuskopiointia ja palautusta. Jos sovelluksen data olisi liiketoiminnalle kriittistä ja ylläpitoaikaa olisi vähän, valitsisin Cloud SQL:n sen hallittujen päivitysten ja palautustoimintojen vuoksi.
+### Testaus
+
+Käynnistin CronJobista kertaluonteisen Jobin. Job valmistui,
+lokissa näkyi `Backup uploaded to gs://...` ja `.dump`-tiedosto
+näkyi bucketin listauksessa.
