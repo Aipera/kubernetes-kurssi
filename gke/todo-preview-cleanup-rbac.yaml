@@ -1,0 +1,61 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: todo-preview-namespace-deletion
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["DELETE"]
+        resources: ["namespaces"]
+        scope: Cluster
+  matchConditions:
+    - name: todo-ci-identity
+      expression: >-
+        request.userInfo.username in [
+          'todo-github-deployer@project-e08f1dba-8ab7-491a-90a.iam.gserviceaccount.com',
+          'GCP_DEPLOYER_UNIQUE_ID'
+        ]
+  validations:
+    - expression: >-
+        oldObject != null &&
+        oldObject.metadata.name.startsWith('preview-') &&
+        has(oldObject.metadata.labels) &&
+        'kurssi-preview-branch' in oldObject.metadata.labels &&
+        oldObject.metadata.labels['kurssi-preview-branch'] != ''
+      message: Todo CI may delete only namespaces marked as branch previews.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: todo-preview-namespace-deletion
+spec:
+  policyName: todo-preview-namespace-deletion
+  validationActions: [Deny]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: todo-preview-cleanup
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: todo-preview-cleanup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: todo-preview-cleanup
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: todo-github-deployer@project-e08f1dba-8ab7-491a-90a.iam.gserviceaccount.com
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: "GCP_DEPLOYER_UNIQUE_ID"
