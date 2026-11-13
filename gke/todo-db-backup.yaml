@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: todo-backup
+  namespace: project
+  annotations:
+    iam.gke.io/gcp-service-account: todo-backup-storage@project-e08f1dba-8ab7-491a-90a.iam.gserviceaccount.com
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: todo-db-backup
+  namespace: project
+spec:
+  schedule: "0 2 * * *"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          serviceAccountName: todo-backup
+          nodeSelector:
+            iam.gke.io/gke-metadata-server-enabled: "true"
+          restartPolicy: Never
+          initContainers:
+            - name: dump
+              image: postgres:16-alpine
+              env:
+                - name: PGHOST
+                  value: todo-postgres
+                - name: PGDATABASE
+                  value: todo
+                - name: PGUSER
+                  value: todo
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: todo-postgres-auth
+                      key: password
+              command: ["/bin/sh", "-ec"]
+              args:
+                - |
+                  pg_dump --no-password --format=custom --file=/backup/todo.dump
+                  pg_restore --list /backup/todo.dump >/dev/null
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          containers:
+            - name: upload
+              image: gcr.io/google.com/cloudsdktool/google-cloud-cli:stable
+              env:
+                - name: BACKUP_BUCKET
+                  value: dwk-todo-backups-284715909721
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED
+                  value: "False"
+              command: ["/bin/sh", "-ec"]
+              args:
+                - |
+                  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+                  destination="gs://${BACKUP_BUCKET}/todo/todo-${stamp}-${POD_NAME}.dump"
+                  gcloud storage cp --if-generation-match=0 /backup/todo.dump "$destination"
+                  printf 'Backup uploaded to %s\n' "$destination"
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+                  readOnly: true
+          volumes:
+            - name: backup
+              emptyDir: {}
