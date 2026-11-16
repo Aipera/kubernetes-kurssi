@@ -1,11 +1,19 @@
-## 2.10 – The project, step 13
+## 4.3 Prometheus
 
-Todo Backend kirjoittaa `POST /todos` -pyynnöistä JSON-lokin. Lokissa näkyvät lähetetty teksti, sen pituus, käsittelyn tulos ja HTTP-tilakoodi. Alloy kerää lokit Lokiin, josta ne voi hakea Grafanan Explore-näkymässä.
+Asensin Prometheuksen Helmillä GKE-klusterin `monitoring`-namespaceen. `kube-state-metrics` tuotti podien tiedot Prometheukselle.
 
-Curl-testissä lyhyt tehtävä palautti `201 Created`. Backend hylkäsi 141 merkin tehtävän vastauksella `400 Bad Request` ja kirjasi hylkäyksen syyksi `too_long`.
+Avasin Prometheuksen käyttöliittymän Service-resurssin kautta. PowerShellissä `$gkeContext` sisältää GKE-klusterin kontekstin nimen.
 
-```logql
-{namespace="project"} | json | event="todo_request" | reason="too_long"
+```powershell
+kubectl --context=$gkeContext -n monitoring port-forward svc/prom-prometheus-server 9090:80
 ```
 
-![Grafanan Loki-kysely ja 141 merkin tehtävän hylkäysloki](./2.10-grafana.png)
+Ajoin [Prometheuksen Query-näkymässä](http://localhost:9090/) kyselyn, joka laskee `prometheus`-namespacen StatefulSetien luomat podit.
+
+```promql
+count(kube_pod_info{namespace="prometheus",created_by_kind="StatefulSet"})
+```
+
+Loin `prometheus`-namespaceen `statefulset-test`-StatefulSetin kolmella testipodilla. Poistin testikontin CPU-pyynnön, jotta podit voitiin ajoittaa klusterin ainoalle nodelle. Kun kolme podia oli käynnistynyt, kysely palautti arvon **3**.
+
+![Prometheus-kysely näyttää kolme StatefulSet-podia](./4.3-prometheus.png)
