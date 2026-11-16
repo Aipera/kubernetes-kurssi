@@ -1,27 +1,24 @@
-## 3.11 Resource requests and limits
+## 3.12 GKE monitoring
 
-Lisäsin Todo-projektin GKE-manifesteihin CPU- ja muistipyynnöt sekä rajat.
+Tarkistin Todo Backendin sovelluslokit Google Cloudin Logs Explorerissa.
+Rajasin kyselyn `dwk-cluster`-klusteriin, `project`-namespaceen ja
+`todo-backend`-konttiin.
 
-| Kontti | CPU-pyyntö | CPU-raja | Muistipyyntö | Muistiraja |
-| --- | ---: | ---: | ---: | ---: |
-| Todo App | 50m | 300m | 128Mi | 256Mi |
-| Todo Backend | 50m | 300m | 128Mi | 256Mi |
-| PostgreSQL | 100m | 500m | 256Mi | 512Mi |
-| Wikipedia-CronJob | 50m | 300m | 128Mi | 256Mi |
-| Varmuuskopio `dump` | 25m | 500m | 64Mi | 256Mi |
-| Varmuuskopio `upload` | 25m | 500m | 128Mi | 512Mi |
+Lisäsin Todo Appissa tehtävän `Testi 3.12`. Lokimerkinnässä näkyivät
+`POST /todos`, `reason: accepted` ja HTTP-status `201`, joka vahvisti
+tehtävän luonnin.
 
-### Testaus GKE:ssä
+### Logs Explorer -kysely
 
-Mittasin konttien käyttöä komennolla `kubectl -n project top pods --containers`.
-Mittaushetkellä Todo App käytti 1m CPU:ta ja 9 MiB muistia, Todo Backend
-2m ja 13 MiB sekä PostgreSQL 6m ja 25 MiB. Kaikki kolme olivat käynnissä
-ilman uudelleenkäynnistyksiä. Lisäsin selaimessa uuden tehtävän ja
-varmistin, että se näkyi sivun päivityksen jälkeen.
+```text
+resource.type="k8s_container"
+resource.labels.cluster_name="dwk-cluster"
+resource.labels.namespace_name="project"
+resource.labels.container_name="todo-backend"
+jsonPayload.event="todo_request"
+jsonPayload.method="POST"
+jsonPayload.status=201
+jsonPayload.text="Testi 3.12"
+```
 
-Varmuuskopion ensimmäinen ajo uusilla rajoilla jäi `Pending`-tilaan
-virheellä `Insufficient cpu`. Pienensin `dump`- ja `upload`-konttien
-CPU-pyynnöt arvoon `25m`. Uusi testiajo valmistui, ja loki vahvisti
-`.dump`-tiedoston siirron Cloud Storageen.
-
-[Todo App](manifests/deployment.yaml) · [Todo Backend](../todo-backend/manifests/todo-backend.yaml) · [PostgreSQL](../gke/todo.yaml) · [Wikipedia-CronJob](../todo-backend/manifests/read-wikipedia-cronjob.yaml) · [Varmuuskopio-CronJob](../gke/todo-db-backup.yaml)
+![Onnistunut todon luonti GKE:n Logs Explorerissa](3.12-gke-logs.png)
