@@ -22,6 +22,19 @@ async function initializeCounter() {
   `);
 }
 
+let counterInitialization;
+
+function ensureCounterInitialized() {
+  if (!counterInitialization) {
+    counterInitialization = initializeCounter().catch((error) => {
+      counterInitialization = undefined;
+      throw error;
+    });
+  }
+
+  return counterInitialization;
+}
+
 const server = http.createServer(async (req, res) => {
   if (req.method !== 'GET' || (req.url !== '/' && req.url !== '/pongs')) {
     res.writeHead(404);
@@ -30,6 +43,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    await ensureCounterInitialized();
+
     let response;
 
     if (req.url === '/') {
@@ -57,10 +72,4 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-initializeCounter()
-  .then(() => server.listen(3000, '0.0.0.0'))
-  .catch(async (error) => {
-    console.error('Could not initialize the counter:', error);
-    process.exitCode = 1;
-    await pool.end();
-  });
+server.listen(3000, '0.0.0.0');
