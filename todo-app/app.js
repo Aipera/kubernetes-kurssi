@@ -29,6 +29,7 @@ if (!host || !imagePath) {
 }
 
 let download;
+let isHealthy = true;
 
 async function downloadImage() {
   const url = new URL(imageUrl);
@@ -66,7 +67,55 @@ async function getImage() {
   return download;
 }
 
+function sendFailurePage(res) {
+  res.writeHead(503, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': 'no-store'
+  });
+  res.end(`<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>System Failure</title>
+  <style>
+    body { margin: 2rem; font-family: system-ui, sans-serif; }
+    main { max-width: 640px; margin: 4rem auto; padding: 2rem; text-align: center;
+           color: #861d1d; background: #fff1f1; border: 1px solid #dfaaaa; border-radius: 12px; }
+    a { color: inherit; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>System Failure</h1>
+    <p>Todo App on hetkellisesti poissa käytöstä. Yritä hetken kuluttua uudelleen.</p>
+    <a href="${homePath}">Palaa Todo Appiin</a>
+  </main>
+</body>
+</html>`);
+}
+
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/healthz') {
+    res.writeHead(isHealthy ? 200 : 500, {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store'
+    });
+    res.end(isHealthy ? 'ok\n' : 'unhealthy\n');
+    return;
+  }
+
+  if (req.method === 'POST' && req.url === '/break') {
+    isHealthy = false;
+    sendFailurePage(res);
+    return;
+  }
+
+  if (!isHealthy) {
+    sendFailurePage(res);
+    return;
+  }
+
   if (req.method === 'GET' && req.url === homePath) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(`<!doctype html>
@@ -78,6 +127,8 @@ const server = http.createServer(async (req, res) => {
   <style>
     body { margin: 2rem; text-align: center; font-family: system-ui, sans-serif; }
     img { width: min(100%, 600px); height: auto; border-radius: 12px; }
+    .break-app { margin-top: 1rem; padding: 0.6rem 1rem; font: inherit; cursor: pointer;
+                 color: #fff; background: #ae2929; border: 0; border-radius: 6px; }
   </style>
 </head>
 <body>
@@ -96,6 +147,10 @@ const server = http.createServer(async (req, res) => {
     <h2 id="todos-heading">Todos</h2>
     <ul id="todo-list" style="display: inline-block; text-align: left;"></ul>
   </section>
+
+  <form action="/break" method="post">
+    <button class="break-app" type="submit">Break the app</button>
+  </form>
 
   <p>DevOps with Kubernetes 2026</p>
 

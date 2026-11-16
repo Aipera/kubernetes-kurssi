@@ -26,6 +26,20 @@ spec:
               cpu: "300m"
               memory: "256Mi"
           imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 3
+            timeoutSeconds: 2
+            failureThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
           env:
             - name: PORT
               value: "8080"

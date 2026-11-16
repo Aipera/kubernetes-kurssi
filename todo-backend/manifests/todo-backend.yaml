@@ -30,8 +30,17 @@ spec:
             - name: http
               containerPort: 3000
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /readyz
               port: http
+            periodSeconds: 5
+            timeoutSeconds: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 2
           env:
             - name: PORT
               value: "3000"

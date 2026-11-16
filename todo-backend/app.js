@@ -46,12 +46,40 @@ async function initializeTodos() {
   `, [initialTodos]);
 }
 
+let todosInitialization;
+
+function ensureTodosInitialized() {
+  if (!todosInitialization) {
+    todosInitialization = initializeTodos().catch((error) => {
+      todosInitialization = undefined;
+      throw error;
+    });
+  }
+  return todosInitialization;
+}
+
 function sendJson(res, status, data) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(data));
 }
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/healthz') {
+    sendJson(res, 200, { status: 'ok' });
+    return;
+  }
+
+  if (req.method === 'GET' && req.url === '/readyz') {
+    try {
+      await ensureTodosInitialized();
+      await pool.query('SELECT 1 FROM todos LIMIT 1');
+      sendJson(res, 200, { status: 'ready' });
+    } catch {
+      sendJson(res, 503, { status: 'not ready' });
+    }
+    return;
+  }
+
   if (req.url !== todosPath) {
     sendJson(res, 404, { error: 'Reittiä ei löydy.' });
     return;
@@ -66,6 +94,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET') {
+      await ensureTodosInitialized();
       const { rows } = await pool.query('SELECT text FROM todos ORDER BY id');
       sendJson(res, 200, rows.map((row) => row.text));
       return;
@@ -117,6 +146,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    await ensureTodosInitialized();
     await pool.query('INSERT INTO todos (text) VALUES ($1)', [text]);
     requestLog.reason = 'accepted';
     sendJson(res, 201, { text });
@@ -127,10 +157,4 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-initializeTodos()
-  .then(() => server.listen(port, host))
-  .catch(async (error) => {
-    console.error('Could not initialize todos:', error);
-    process.exitCode = 1;
-    await pool.end();
-  });
+server.listen(port, host);
