@@ -33,3 +33,4 @@
 - [3.10 - part 18](https://github.com/Aipera/kubernetes-kurssi/tree/3.10/todo-app)
 - [3.11 – Resource requests and limits](todo-app/README.md#311-resource-requests-and-limits)
 - [3.12 – GKE monitoring](todo-app/README.md#312-gke-monitoring)
+- 4.1 Readiness probe · [Ping-pong](ping-pong/README.md#41-readiness-probe) · [Log output](log-output/README.md#41-readiness-probe)
