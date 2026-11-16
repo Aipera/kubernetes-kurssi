@@ -32,3 +32,4 @@
 - [3.9 - DBaaS vs DIY](https://github.com/Aipera/kubernetes-kurssi/tree/3.9/todo-app)
 - [3.10 - part 18](https://github.com/Aipera/kubernetes-kurssi/tree/3.10/todo-app)
 - [3.11 – Resource requests and limits](todo-app/README.md#311-resource-requests-and-limits)
+- [3.12 – GKE monitoring](todo-app/README.md#312-gke-monitoring)
