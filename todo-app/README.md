@@ -1,24 +1,17 @@
-## 3.12 GKE monitoring
+## 4.2 Health probes
 
-Tarkistin Todo Backendin sovelluslokit Google Cloudin Logs Explorerissa.
-Rajasin kyselyn `dwk-cluster`-klusteriin, `project`-namespaceen ja
-`todo-backend`-konttiin.
+Todo Appin readiness ja liveness käyttävät reittiä `GET /healthz`.
+**Break the app** -painike lähettää pyynnön `POST /break` ja näyttää
+**System Failure** -sivun. Vikatilassa `/healthz` palauttaa HTTP `500`
+ja etusivu HTTP `503`.
 
-Lisäsin Todo Appissa tehtävän `Testi 3.12`. Lokimerkinnässä näkyivät
-`POST /todos`, `reason: accepted` ja HTTP-status `201`, joka vahvisti
-tehtävän luonnin.
+### Testaus GKE:ssä
 
-### Logs Explorer -kysely
+1. Seurasin podia komennolla `kubectl -n project get pods -l app=todo-app -w`.
+2. Painoin **Break the app** ja näin virhesivun. Liveness-tarkistus
+   käynnisti kontin uudelleen samassa podissa. `RESTARTS` kasvoi yhdellä
+   ja `READY` palasi arvoon `1/1`.
+3. Palasin Todo Appiin, lisäsin tehtävän `Testi 4.2` ja päivitin sivun.
+   Tehtävä näkyi edelleen listassa.
 
-```text
-resource.type="k8s_container"
-resource.labels.cluster_name="dwk-cluster"
-resource.labels.namespace_name="project"
-resource.labels.container_name="todo-backend"
-jsonPayload.event="todo_request"
-jsonPayload.method="POST"
-jsonPayload.status=201
-jsonPayload.text="Testi 3.12"
-```
-
-![Onnistunut todon luonti GKE:n Logs Explorerissa](3.12-gke-logs.png)
+[Sovelluskoodi](app.js) · [Deployment](manifests/deployment.yaml) · [GKE-reititys](../gke/todo.yaml)
