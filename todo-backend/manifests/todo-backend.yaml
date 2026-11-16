@@ -18,6 +18,13 @@ spec:
       containers:
         - name: todo-backend
           image: todo-backend:2.10
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
