@@ -1,17 +1,14 @@
-## 2.9 – The project, step 12
+## 4.2 Health probes
 
-`read-wikipedia`-CronJob ajetaan `project`-namespacessa tasatunnein (`0 * * * *`). Se lukee satunnaisen Wikipedia-artikkelin osoitteen `Special:Random`-vastauksen `Location`-otsakkeesta ja lisää Todo Backendiin tehtävän muodossa `Read <URL>`.
+Backendin liveness käyttää reittiä `GET /healthz`, joka palauttaa HTTP
+`200`, kun palvelin vastaa. Readiness käyttää reittiä `GET /readyz`,
+joka suorittaa kyselyn PostgreSQL:n `todos`-tauluun. Onnistunut kysely
+palauttaa HTTP `200` ja tietokantavirhe HTTP `503`. GKE Gatewayn
+`HealthCheckPolicy` käyttää samaa `/readyz`-reittiä.
 
-### Käyttöönotto ja testaus
+Paikallisessa testissä simuloin tietokantakatkon. Katkon aikana
+`/readyz` palautti `503` ja `/healthz` palautti `200`. Yhteyden palauduttua
+`/readyz` palautti `200`. GKE:ssä varmistin tallennuksen lisäämällä uuden
+tehtävän selaimessa Todo Appin palauduttua ja päivittämällä sivun.
 
-Aja komennot repositorion juurikansiossa Windowsin CMD:ssä, kun Todo Backend on käynnissä.
-
-```cmd
-kubectl -n project apply -f todo-backend\manifests\read-wikipedia-cronjob.yaml
-kubectl -n project create job --from=cronjob/read-wikipedia read-wikipedia-test
-kubectl -n project wait --for=condition=complete job/read-wikipedia-test --timeout=120s
-kubectl -n project logs job/read-wikipedia-test
-curl.exe -f http://localhost:8081/todos
-```
-
-Testi onnistuu, kun lokissa näkyy `Created todo: Read ...` ja sama tehtävä löytyy `/todos`-listasta. Käytä uudessa testiajossa eri Job-nimeä, esimerkiksi `read-wikipedia-test-2`.
+[Backendin koodi](app.js) · [Deployment](manifests/todo-backend.yaml) · [GKE:n terveystarkistus](../gke/todo.yaml)
