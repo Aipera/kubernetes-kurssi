@@ -12,10 +12,10 @@ resources:
 images:
 - name: broadcaster
   newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
-  newTag: 701e63993ae6425ffd4b4d64b86556e5fea3d4eb
+  newTag: 3185ea8f9cf6ba41c0b7a0f47105bd131a8860af
 - name: todo-app
   newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
-  newTag: 701e63993ae6425ffd4b4d64b86556e5fea3d4eb
+  newTag: 3185ea8f9cf6ba41c0b7a0f47105bd131a8860af
 - name: todo-backend
   newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
-  newTag: 701e63993ae6425ffd4b4d64b86556e5fea3d4eb
+  newTag: 3185ea8f9cf6ba41c0b7a0f47105bd131a8860af
