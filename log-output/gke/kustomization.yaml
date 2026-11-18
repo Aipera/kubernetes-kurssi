@@ -2,9 +2,10 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: exercises
 resources:
-  - configmap.yaml
-  - deployment.yaml
-  - service.yaml
+- configmap.yaml
+- deployment.yaml
+- service.yaml
 images:
-  - name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/log-output
-    newTag: '3.2'
+- name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/log-output
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/log-output
+  newTag: da5e381434484454b20bee7e35e7a0ab47e03707
