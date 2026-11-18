@@ -2,37 +2,40 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: staging
 resources:
-  - ../../base
-  - namespace.yaml
+- ../../base
+- namespace.yaml
 patches:
-  - path: workloads.yaml
-  - patch: |-
-      $patch: delete
-      apiVersion: batch/v1
-      kind: CronJob
-      metadata:
-        name: todo-db-backup
-        namespace: project
-  - patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: ServiceAccount
-      metadata:
-        name: todo-backup
-        namespace: project
-  - patch: |-
-      apiVersion: gateway.networking.k8s.io/v1
-      kind: HTTPRoute
-      metadata:
-        name: todo-route
-        namespace: project
-      spec:
-        hostnames:
-          - staging.gke.136.82.24.113.sslip.io
+- path: workloads.yaml
+- patch: |-
+    $patch: delete
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: todo-db-backup
+      namespace: project
+- patch: |-
+    $patch: delete
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: todo-backup
+      namespace: project
+- patch: |-
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: todo-route
+      namespace: project
+    spec:
+      hostnames:
+        - staging.gke.136.82.24.113.sslip.io
 images:
-  - name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
-    newTag: BUILD_REQUIRED
-  - name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
-    newTag: BUILD_REQUIRED
-  - name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
-    newTag: BUILD_REQUIRED
+- name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
+  newTag: 82c72f70cfacc942663788cba93df7fc1aba9b83
+- name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
+  newTag: 82c72f70cfacc942663788cba93df7fc1aba9b83
+- name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
+  newTag: 82c72f70cfacc942663788cba93df7fc1aba9b83
