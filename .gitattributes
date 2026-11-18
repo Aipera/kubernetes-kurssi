@@ -1,2 +1,3 @@
 
 gke/deploy-todo.sh text eol=lf
+log-output/release-image.sh text eol=lf

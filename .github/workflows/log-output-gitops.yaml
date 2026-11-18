@@ -1,0 +1,62 @@
+name: Build Log output for GitOps
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - log-output/app.js
+      - log-output/writer.js
+      - log-output/Dockerfile
+      - log-output/.dockerignore
+      - log-output/gke/**
+      - log-output/release-image.sh
+      - .github/workflows/log-output-gitops.yaml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: log-output-gitops-main
+  queue: max
+
+env:
+  GKE_PROJECT_ID: project-e08f1dba-8ab7-491a-90a
+  GAR_HOST: europe-north1-docker.pkg.dev
+  LOG_OUTPUT_IMAGE: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/log-output
+
+jobs:
+  build-publish:
+    if: ${{ github.ref == 'refs/heads/main' && github.event.deleted != true }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check log-output/app.js
+          node --check log-output/writer.js
+
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ env.GKE_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Build and publish image
+        run: |
+          gcloud auth configure-docker "$GAR_HOST" --quiet
+          docker build --platform linux/amd64 -t "$LOG_OUTPUT_IMAGE:$GITHUB_SHA" log-output
+          docker push "$LOG_OUTPUT_IMAGE:$GITHUB_SHA"
+
+      - uses: imranismail/setup-kustomize@v3
+        with:
+          kustomize-version: '5.8.1'
+
+      - name: Commit image version for Argo CD
+        run: bash log-output/release-image.sh
