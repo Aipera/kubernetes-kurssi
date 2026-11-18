@@ -1,17 +1,11 @@
-## 4.2 Health probes
+## 4.5 Done field
 
-Todo Appin readiness ja liveness käyttävät reittiä `GET /healthz`.
-**Break the app** -painike lähettää pyynnön `POST /break` ja näyttää
-**System Failure** -sivun. Vikatilassa `/healthz` palauttaa HTTP `500`
-ja etusivu HTTP `503`.
+Tehtävän voi merkitä valmiiksi Mark done -painikkeella. Painike lähettää backendille `PUT /todos/<id>` -pyynnön.
 
-### Testaus GKE:ssä
+```json
+{"done": true}
+```
 
-1. Seurasin podia komennolla `kubectl -n project get pods -l app=todo-app -w`.
-2. Painoin **Break the app** ja näin virhesivun. Liveness-tarkistus
-   käynnisti kontin uudelleen samassa podissa. `RESTARTS` kasvoi yhdellä
-   ja `READY` palasi arvoon `1/1`.
-3. Palasin Todo Appiin, lisäsin tehtävän `Testi 4.2` ja päivitin sivun.
-   Tehtävä näkyi edelleen listassa.
+Valmiin tehtävän teksti yliviivataan ja sen vieressä näytetään Done. Tila tallennetaan PostgreSQL-tietokantaan.
 
-[Sovelluskoodi](app.js) · [Deployment](manifests/deployment.yaml) · [GKE-reititys](../gke/todo.yaml)
+Testasin toiminnan GKE:ssä lisäämällä tehtävän, merkitsemällä sen valmiiksi ja päivittämällä sivun. Tehtävä säilyi valmiina sivun päivityksen jälkeen.
