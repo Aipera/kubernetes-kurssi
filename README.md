@@ -36,3 +36,4 @@
 - 4.1 Readiness probe · [Ping-pong](ping-pong/README.md#41-readiness-probe) · [Log output](log-output/README.md#41-readiness-probe)
 - 4.2 Health probes · [Todo App](todo-app/README.md#42-health-probes) · [Todo Backend](todo-backend/README.md#42-health-probes)
 - [4.3 – Prometheus](monitoring/README.md#43-prometheus)
+- [4.4 – Your canary](ping-pong/README.md#44-your-canary)
