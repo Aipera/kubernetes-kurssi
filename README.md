@@ -40,3 +40,4 @@
 - 4.5 Done field · [Todo App](todo-app/README.md#45-done-field) · [Todo Backend](todo-backend/README.md#45-done-field)
 - [4.6 – Broadcaster](broadcaster/README.md)
 - [4.7 – Log output GitOps](log-output/README.md)
+- [4.8 – Todo-projektin GitOps](todo-app/README.md)
