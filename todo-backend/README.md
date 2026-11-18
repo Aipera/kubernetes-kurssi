@@ -1,14 +1,13 @@
-## 4.2 Health probes
+## 4.5 Done field
 
-Backendin liveness käyttää reittiä `GET /healthz`, joka palauttaa HTTP
-`200`, kun palvelin vastaa. Readiness käyttää reittiä `GET /readyz`,
-joka suorittaa kyselyn PostgreSQL:n `todos`-tauluun. Onnistunut kysely
-palauttaa HTTP `200` ja tietokantavirhe HTTP `503`. GKE Gatewayn
-`HealthCheckPolicy` käyttää samaa `/readyz`-reittiä.
+Tehtävillä on kentät `id`, `text` ja `done`. Backend lisää olemassa olevaan PostgreSQL-tauluun `done`-sarakkeen, jonka oletusarvo on `false`.
 
-Paikallisessa testissä simuloin tietokantakatkon. Katkon aikana
-`/readyz` palautti `503` ja `/healthz` palautti `200`. Yhteyden palauduttua
-`/readyz` palautti `200`. GKE:ssä varmistin tallennuksen lisäämällä uuden
-tehtävän selaimessa Todo Appin palauduttua ja päivittämällä sivun.
+`GET /todos` palauttaa tehtävät olioina. Tehtävän tilaa päivitetään pyynnöllä `PUT /todos/<id>`.
 
-[Backendin koodi](app.js) · [Deployment](manifests/todo-backend.yaml) · [GKE:n terveystarkistus](../gke/todo.yaml)
+```json
+{"done": true}
+```
+
+Onnistunut päivitys palauttaa HTTP-tilakoodin `200` ja päivitetyn tehtävän. Tuntematon tunniste palauttaa `404`. Virheellinen done-arvo palauttaa `400`.
+
+[GKE-reititys](../gke/todo.yaml) ohjaa myös `/todos/<id>`-pyynnöt backendille.
