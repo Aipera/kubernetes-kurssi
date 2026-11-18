@@ -8,4 +8,4 @@ resources:
 images:
 - name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/log-output
   newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/log-output
-  newTag: da5e381434484454b20bee7e35e7a0ab47e03707
+  newTag: 8c36b43b2804e1acc46b4e764bf4a8369d23a9bc
