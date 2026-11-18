@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: ping-pong-namespace-cpu
+  namespace: exercises
+spec:
+  args:
+    - name: namespace
+    - name: cpu-limit
+  metrics:
+    - name: namespace-cpu
+      initialDelay: 30s
+      interval: 30s
+      count: 10
+      failureLimit: 0
+      consecutiveErrorLimit: 1
+      successCondition: 'len(result) == 1 && result[0] < {{args.cpu-limit}}'
+      provider:
+        prometheus:
+          address: http://prom-prometheus-server.monitoring.svc.cluster.local:80
+          query: |
+            sum(rate(container_cpu_usage_seconds_total{
+              namespace="{{args.namespace}}",
+              container!="",
+              container!="POD"
+            }[5m]))
