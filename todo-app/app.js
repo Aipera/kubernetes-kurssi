@@ -143,7 +143,7 @@ const server = http.createServer(async (req, res) => {
   </style>
 </head>
 <body>
-  <h1>Todo App</h1>
+  <h1>Todo App - GitOps 4.8</h1>
   <img src="${imageRoute}" alt="Satunnainen kuva">
 
   <section aria-labelledby="todos-heading">
