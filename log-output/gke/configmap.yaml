@@ -5,4 +5,4 @@ metadata:
   namespace: exercises
 data:
   information.txt: "this text is from file"
-  MESSAGE: "hello world"
+  MESSAGE: "hello from GitOps 4.7"
