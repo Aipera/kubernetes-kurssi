@@ -38,3 +38,4 @@
 - [4.3 – Prometheus](monitoring/README.md#43-prometheus)
 - [4.4 – Your canary](ping-pong/README.md#44-your-canary)
 - 4.5 Done field · [Todo App](todo-app/README.md#45-done-field) · [Todo Backend](todo-backend/README.md#45-done-field)
+- [4.6 – Broadcaster](broadcaster/README.md)
