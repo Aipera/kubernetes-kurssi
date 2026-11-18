@@ -1,15 +1,25 @@
-name: Deploy Todo to GKE
+name: Build Todo for GitOps
 
 on:
   push:
-    branches: ['**']
+    branches: [main]
+    paths:
+      - todo-app/**
+      - todo-backend/**
+      - broadcaster/**
+      - gke/todo.yaml
+      - gke/todo-db-backup.yaml
+      - gke/release-todo-images.sh
+      - kustomization.yaml
+      - .github/workflows/deploy-todo.yaml
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
-  group: todo-environment-${{ github.ref_name }}
+  group: todo-gitops-main
   queue: max
 
 env:
@@ -18,15 +28,23 @@ env:
   GAR_REPOSITORY: kurssi
 
 jobs:
-  deploy:
-    if: ${{ github.event.deleted == false }}
+  build-publish:
+    if: ${{ github.ref == 'refs/heads/main' && github.event.deleted != true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
-          persist-credentials: false
+          fetch-depth: 0
 
       - uses: imranismail/setup-kustomize@v3
+        with:
+          kustomize-version: '5.8.1'
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check todo-app/app.js
+          node --check todo-backend/app.js
+          node --check broadcaster/app.js
 
       - name: Build images
         run: |
@@ -46,8 +64,6 @@ jobs:
           service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
 
       - uses: google-github-actions/setup-gcloud@v3
-        with:
-          install_components: kubectl
 
       - name: Publish images
         run: |
@@ -56,23 +72,5 @@ jobs:
           docker push "$TODO_BACKEND_IMAGE"
           docker push "$BROADCASTER_IMAGE"
 
-      - uses: google-github-actions/get-gke-credentials@v3
-        with:
-          project_id: ${{ env.GKE_PROJECT_ID }}
-          cluster_name: dwk-cluster
-          location: europe-north1-b
-
-      - name: Deploy with Kustomize
-        env:
-          TODO_GATEWAY_IP: '136.82.24.113'
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-
-          remote_refs="$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/heads/$GITHUB_REF_NAME" --jq '.[].ref')"
-          if ! grep -Fxq -- "refs/heads/$GITHUB_REF_NAME" <<< "$remote_refs"; then
-            printf 'Branch %s has been deleted. Skipping deployment.\n' "$GITHUB_REF_NAME"
-            exit 0
-          fi
-
-          bash gke/deploy-todo.sh
+      - name: Commit image versions for Argo CD
+        run: bash gke/release-todo-images.sh

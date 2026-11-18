@@ -8,6 +8,7 @@ resources:
   - todo-backend/manifests/read-wikipedia-cronjob.yaml
   - broadcaster/manifests/deployment.yaml
   - gke/todo.yaml
+  - gke/todo-db-backup.yaml
 images:
   - name: todo-app
     newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
