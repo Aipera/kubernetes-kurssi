@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: ping-pong
+  namespace: exercises
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 900
+  selector:
+    matchLabels:
+      app: ping-pong
+  workloadRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ping-pong
+    scaleDown: onsuccess
+  strategy:
+    canary:
+      maxSurge: 1
+      maxUnavailable: 0
+      steps:
+        - setWeight: 50
+        - analysis:
+            templates:
+              - templateName: ping-pong-namespace-cpu
+            args:
+              - name: namespace
+                value: exercises
+              - name: cpu-limit
+                value: "0.5"
