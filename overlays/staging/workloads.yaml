@@ -1,0 +1,73 @@
+# Small course cluster: staging uses CPU limits without reserving CPU shares.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app
+  namespace: project
+spec:
+  template:
+    spec:
+      containers:
+        - name: todo-app
+          resources:
+            requests: {cpu: '0', memory: 16Mi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-backend
+  namespace: project
+spec:
+  template:
+    spec:
+      containers:
+        - name: todo-backend
+          resources:
+            requests: {cpu: '0', memory: 32Mi}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: todo-postgres
+  namespace: project
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres
+          resources:
+            requests: {cpu: '0', memory: 32Mi}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: read-wikipedia
+  namespace: project
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: read-wikipedia
+              resources:
+                requests: {cpu: '0', memory: 32Mi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broadcaster
+  namespace: project
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: broadcaster
+          resources:
+            requests: {cpu: '0', memory: 16Mi}
+          env:
+            - name: BROADCAST_MODE
+              value: log
+            - name: WEBHOOK_URL
+              $patch: delete

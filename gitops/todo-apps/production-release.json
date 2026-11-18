@@ -1,0 +1,17 @@
+{
+  "apiVersion": "argoproj.io/v1alpha1",
+  "kind": "Application",
+  "metadata": {
+    "name": "todo-project",
+    "namespace": "argocd",
+    "annotations": {
+      "release-tag": "pre-4.9"
+    }
+  },
+  "spec": {
+    "source": {
+      "targetRevision": "83ce0871c8bb4fe978592dce2d3a8fc181dd7ffc",
+      "path": "."
+    }
+  }
+}

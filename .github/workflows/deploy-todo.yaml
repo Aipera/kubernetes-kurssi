@@ -3,15 +3,7 @@ name: Build Todo for GitOps
 on:
   push:
     branches: [main]
-    paths:
-      - todo-app/**
-      - todo-backend/**
-      - broadcaster/**
-      - gke/todo.yaml
-      - gke/todo-db-backup.yaml
-      - gke/release-todo-images.sh
-      - kustomization.yaml
-      - .github/workflows/deploy-todo.yaml
+    tags: ['**']
   workflow_dispatch:
 
 permissions:
@@ -19,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: todo-gitops-main
+  group: todo-gitops-environments
   queue: max
 
 env:
@@ -29,7 +21,7 @@ env:
 
 jobs:
   build-publish:
-    if: ${{ github.ref == 'refs/heads/main' && github.event.deleted != true }}
+    if: ${{ (github.ref == 'refs/heads/main' || github.ref_type == 'tag') && github.event.deleted != true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -46,16 +38,23 @@ jobs:
           node --check todo-backend/app.js
           node --check broadcaster/app.js
 
+      - name: Validate environments
+        run: |
+          kustomize build overlays/staging >/dev/null
+          kustomize build overlays/production >/dev/null
+          kustomize build gitops/todo-apps >/dev/null
+
       - name: Build images
         run: |
           image_root="$GAR_HOST/$GKE_PROJECT_ID/$GAR_REPOSITORY"
-          todo_app_image="$image_root/todo-app:$GITHUB_SHA"
-          todo_backend_image="$image_root/todo-backend:$GITHUB_SHA"
-          broadcaster_image="$image_root/broadcaster:$GITHUB_SHA"
+          release_sha="$(git rev-parse HEAD)"
+          todo_app_image="$image_root/todo-app:$release_sha"
+          todo_backend_image="$image_root/todo-backend:$release_sha"
+          broadcaster_image="$image_root/broadcaster:$release_sha"
           docker build --platform linux/amd64 -t "$todo_app_image" todo-app
           docker build --platform linux/amd64 -t "$todo_backend_image" todo-backend
           docker build --platform linux/amd64 -t "$broadcaster_image" broadcaster
-          printf 'TODO_APP_IMAGE=%s\nTODO_BACKEND_IMAGE=%s\nBROADCASTER_IMAGE=%s\n' "$todo_app_image" "$todo_backend_image" "$broadcaster_image" >> "$GITHUB_ENV"
+          printf 'TODO_RELEASE_SHA=%s\nTODO_APP_IMAGE=%s\nTODO_BACKEND_IMAGE=%s\nBROADCASTER_IMAGE=%s\n' "$release_sha" "$todo_app_image" "$todo_backend_image" "$broadcaster_image" >> "$GITHUB_ENV"
 
       - uses: google-github-actions/auth@v3
         with:

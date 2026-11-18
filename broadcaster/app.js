@@ -6,11 +6,15 @@ const namespace = process.env.POD_NAMESPACE || 'project';
 const subject = `todos.${namespace}.events`;
 const queue = process.env.NATS_QUEUE || 'todo-broadcasters';
 const instance = process.env.HOSTNAME || `broadcaster-${process.pid}`;
-const webhookUrl = new URL(process.env.WEBHOOK_URL);
+const mode = process.env.BROADCAST_MODE || 'webhook';
+const webhookUrl = mode === 'webhook' ? new URL(process.env.WEBHOOK_URL) : undefined;
 const webhookTimeoutMs = Number(process.env.WEBHOOK_TIMEOUT_MS || '10000');
 
-if (!process.env.NATS_URL || !['http:', 'https:'].includes(webhookUrl.protocol)) {
-  throw new Error('NATS_URL and an HTTP(S) WEBHOOK_URL are required');
+if (!['webhook', 'log'].includes(mode)) {
+  throw new Error('BROADCAST_MODE must be webhook or log');
+}
+if (!process.env.NATS_URL || (mode === 'webhook' && !['http:', 'https:'].includes(webhookUrl.protocol))) {
+  throw new Error('NATS_URL is required; webhook mode also requires an HTTP(S) WEBHOOK_URL');
 }
 if (!Number.isInteger(port) || port < 1 || port > 65535 ||
     !Number.isSafeInteger(webhookTimeoutMs) || webhookTimeoutMs < 1 || webhookTimeoutMs > 2147483647) {
@@ -49,6 +53,10 @@ async function forwardMessage(message) {
       user: 'bot',
       message: `Todo ${todo.id} was ${action}: ${todo.text} (done: ${todo.done})`
     };
+    if (mode === 'log') {
+      console.log(JSON.stringify({ event: 'todo_event_logged', eventId, instance, type: event.type, todoId: todo.id, ...payload }));
+      return;
+    }
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
@@ -90,7 +98,7 @@ async function main() {
   watchConnection(connection).catch((error) => console.error('NATS status failed:', error.message));
   await connection.flush();
   ready = true;
-  console.log(JSON.stringify({ event: 'broadcaster_ready', instance, subject, queue }));
+  console.log(JSON.stringify({ event: 'broadcaster_ready', instance, subject, queue, mode }));
 
   for await (const message of subscription) {
     await forwardMessage(message);

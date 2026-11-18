@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: project
+resources:
+  - ../../base
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: broadcaster
+        namespace: project
+      spec:
+        template:
+          spec:
+            containers:
+              - name: broadcaster
+                env:
+                  - name: BROADCAST_MODE
+                    value: webhook
+  - patch: |-
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: read-wikipedia
+        namespace: project
+      spec:
+        jobTemplate:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: read-wikipedia
+                    resources:
+                      requests:
+                        cpu: 10m

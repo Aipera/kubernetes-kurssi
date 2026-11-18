@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: project
+resources:
+- ../todo-app/manifests
+- ../todo-backend/manifests
+- ../broadcaster/manifests
+- ../gke
+images:
+- name: broadcaster
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
+  newTag: fd64ae68b1dbf702b46c5077212263f2d85bd7ba
+- name: todo-app
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
+  newTag: fd64ae68b1dbf702b46c5077212263f2d85bd7ba
+- name: todo-backend
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
+  newTag: fd64ae68b1dbf702b46c5077212263f2d85bd7ba
