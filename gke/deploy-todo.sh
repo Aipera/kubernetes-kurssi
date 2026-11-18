@@ -5,6 +5,7 @@ branch="$GITHUB_REF_NAME"
 namespace=project
 
 if [[ "$branch" != main ]]; then
+  kustomize edit set replicas broadcaster=0
   if [[ ! "$branch" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]]; then
     printf 'Branch name must be a valid Kubernetes namespace name: %s\n' "$branch" >&2
     exit 1
@@ -60,9 +61,10 @@ EOF
 fi
 
 kustomize edit set namespace "$namespace"
-kustomize edit set image "todo-app=$TODO_APP_IMAGE" "todo-backend=$TODO_BACKEND_IMAGE"
+kustomize edit set image "todo-app=$TODO_APP_IMAGE" "todo-backend=$TODO_BACKEND_IMAGE" "broadcaster=$BROADCASTER_IMAGE"
 kubectl -n "$namespace" apply -k .
 kubectl -n "$namespace" rollout status statefulset/todo-postgres --timeout=300s
 kubectl -n "$namespace" rollout status deployment/todo-backend --timeout=300s
 kubectl -n "$namespace" rollout status deployment/todo-app --timeout=300s
-kubectl -n "$namespace" get deployment todo-app todo-backend -o wide
+kubectl -n "$namespace" rollout status deployment/broadcaster --timeout=300s
+kubectl -n "$namespace" get deployment todo-app todo-backend broadcaster -o wide

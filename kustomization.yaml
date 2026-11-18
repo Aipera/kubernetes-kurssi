@@ -6,11 +6,15 @@ resources:
   - todo-app/manifests/service.yaml
   - todo-backend/manifests/todo-backend.yaml
   - todo-backend/manifests/read-wikipedia-cronjob.yaml
+  - broadcaster/manifests/deployment.yaml
   - gke/todo.yaml
 images:
   - name: todo-app
     newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
     newTag: "3.5"
+  - name: broadcaster
+    newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
+    newTag: "4.6"
   - name: todo-backend
     newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
     newTag: "3.5"

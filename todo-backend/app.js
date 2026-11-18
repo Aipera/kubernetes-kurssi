@@ -1,4 +1,6 @@
 const http = require('node:http');
+const { randomUUID } = require('node:crypto');
+const { connect } = require('@nats-io/transport-node');
 const { Pool } = require('pg');
 
 function positiveInteger(name, max = Number.MAX_SAFE_INTEGER) {
@@ -21,6 +23,41 @@ if (!host || !todosPath?.startsWith('/')) {
 
 const pool = new Pool({ connectionTimeoutMillis: 5000 });
 pool.on('error', (error) => console.error('PostgreSQL connection error:', error));
+
+const natsSubject = `todos.${process.env.POD_NAMESPACE || 'project'}.events`;
+let natsConnection;
+
+if (process.env.NATS_URL) {
+  connect({
+    servers: process.env.NATS_URL,
+    name: `todo-backend-${process.env.HOSTNAME || process.pid}`,
+    waitOnFirstConnect: true,
+    maxReconnectAttempts: -1,
+    reconnectTimeWait: 1000,
+    timeout: 2000
+  }).then((connection) => {
+    natsConnection = connection;
+    console.log(JSON.stringify({ event: 'nats_connected', subject: natsSubject }));
+  }).catch((error) => {
+    console.error('NATS connection failed:', error.message);
+  });
+}
+
+function publishTodoEvent(type, todo) {
+  if (!process.env.NATS_URL) return;
+
+  const event = { id: randomUUID(), type, todo };
+  try {
+    if (!natsConnection || natsConnection.isClosed() || natsConnection.isDraining()) {
+      throw new Error('NATS connection is unavailable');
+    }
+
+    natsConnection.publish(natsSubject, Buffer.from(JSON.stringify(event)));
+    console.log(JSON.stringify({ event: 'todo_event_published', eventId: event.id, type, todoId: todo.id }));
+  } catch (error) {
+    console.error(JSON.stringify({ event: 'todo_event_dropped', eventId: event.id, message: error.message }));
+  }
+}
 
 async function initializeTodos() {
   await pool.query(`
@@ -174,6 +211,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       requestLog.reason = 'accepted';
+      publishTodoEvent('todo.updated', rows[0]);
       sendJson(res, 200, rows[0]);
       return;
     }
@@ -197,6 +235,7 @@ const server = http.createServer(async (req, res) => {
       RETURNING id::text AS id, text, done
     `, [text]);
     requestLog.reason = 'accepted';
+    publishTodoEvent('todo.created', rows[0]);
     sendJson(res, 201, rows[0]);
   } catch (error) {
     requestLog.reason = 'database_error';

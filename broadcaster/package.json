@@ -1,0 +1,8 @@
+{
+  "name": "todo-broadcaster",
+  "version": "4.6.0",
+  "private": true,
+  "dependencies": {
+    "@nats-io/transport-node": "^3.5.0"
+  }
+}

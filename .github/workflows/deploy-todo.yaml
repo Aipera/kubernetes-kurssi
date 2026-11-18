@@ -33,9 +33,11 @@ jobs:
           image_root="$GAR_HOST/$GKE_PROJECT_ID/$GAR_REPOSITORY"
           todo_app_image="$image_root/todo-app:$GITHUB_SHA"
           todo_backend_image="$image_root/todo-backend:$GITHUB_SHA"
+          broadcaster_image="$image_root/broadcaster:$GITHUB_SHA"
           docker build --platform linux/amd64 -t "$todo_app_image" todo-app
           docker build --platform linux/amd64 -t "$todo_backend_image" todo-backend
-          printf 'TODO_APP_IMAGE=%s\nTODO_BACKEND_IMAGE=%s\n' "$todo_app_image" "$todo_backend_image" >> "$GITHUB_ENV"
+          docker build --platform linux/amd64 -t "$broadcaster_image" broadcaster
+          printf 'TODO_APP_IMAGE=%s\nTODO_BACKEND_IMAGE=%s\nBROADCASTER_IMAGE=%s\n' "$todo_app_image" "$todo_backend_image" "$broadcaster_image" >> "$GITHUB_ENV"
 
       - uses: google-github-actions/auth@v3
         with:
@@ -52,6 +54,7 @@ jobs:
           gcloud auth configure-docker "$GAR_HOST" --quiet
           docker push "$TODO_APP_IMAGE"
           docker push "$TODO_BACKEND_IMAGE"
+          docker push "$BROADCASTER_IMAGE"
 
       - uses: google-github-actions/get-gke-credentials@v3
         with:
