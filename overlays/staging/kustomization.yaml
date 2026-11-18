@@ -32,10 +32,10 @@ patches:
 images:
 - name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
   newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
-  newTag: 8517cf76f494adb5ef3acdde285b2747210a26af
+  newTag: 0ce144d9a9517ae23f7c63c1cb20bd9f68fc4870
 - name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
   newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
-  newTag: 8517cf76f494adb5ef3acdde285b2747210a26af
+  newTag: 0ce144d9a9517ae23f7c63c1cb20bd9f68fc4870
 - name: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
   newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
-  newTag: 8517cf76f494adb5ef3acdde285b2747210a26af
+  newTag: 0ce144d9a9517ae23f7c63c1cb20bd9f68fc4870
