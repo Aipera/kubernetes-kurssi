@@ -2,20 +2,20 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: project
 resources:
-  - todo-app/manifests/deployment.yaml
-  - todo-app/manifests/service.yaml
-  - todo-backend/manifests/todo-backend.yaml
-  - todo-backend/manifests/read-wikipedia-cronjob.yaml
-  - broadcaster/manifests/deployment.yaml
-  - gke/todo.yaml
-  - gke/todo-db-backup.yaml
+- todo-app/manifests/deployment.yaml
+- todo-app/manifests/service.yaml
+- todo-backend/manifests/todo-backend.yaml
+- todo-backend/manifests/read-wikipedia-cronjob.yaml
+- broadcaster/manifests/deployment.yaml
+- gke/todo.yaml
+- gke/todo-db-backup.yaml
 images:
-  - name: todo-app
-    newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
-    newTag: "3.5"
-  - name: broadcaster
-    newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
-    newTag: "4.6"
-  - name: todo-backend
-    newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
-    newTag: "3.5"
+- name: broadcaster
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster
+  newTag: b68d5b44e15111bbbd0d502e6318500d40a1d5a8
+- name: todo-app
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app
+  newTag: b68d5b44e15111bbbd0d502e6318500d40a1d5a8
+- name: todo-backend
+  newName: europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend
+  newTag: b68d5b44e15111bbbd0d502e6318500d40a1d5a8
