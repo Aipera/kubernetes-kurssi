@@ -1,33 +1,40 @@
-## 4.8 Todo-projektin GitOps
+## 4.9 Staging ja production
 
-Todo-projekti julkaistaan main-haarasta GitHub Actionsin ja Argo CD:n avulla.
+Projektilla on kaksi erillistä ympäristöä:
 
-Kun projektin koodia tai manifesteja muutetaan:
+| Ympäristö | Namespace | Julkaisu | Broadcaster | Varmuuskopiointi |
+|---|---|---|---|---|
+| staging | staging | Main-commit | Vain lokiin | Ei |
+| production | project | Tägi | Webhookiin | Kyllä |
 
-1. GitHub Actions rakentaa Todo Appin, Backendin ja broadcasterin konttikuvat.
-2. Kuvat julkaistaan Artifact Registryyn commitin SHA-tunnisteella.
-3. Työnkulku tallentaa kuvatunnisteet kustomization.yaml-tiedostoon ja tekee commitin.
-4. Argo CD hakee muutokset Gitistä ja päivittää projektin GKE:hen.
+Tuotanto käyttää nykyistä project-namespacea ja sen tietokantaa.
+Stagingilla on oma tietokanta, Secret ja pysyvät levyt.
 
-Argo CD Application `todo-project` seuraa repositorion juuren
-Kustomize-määritystä. Resurssit julkaistaan `project`-namespaceen.
-Mukana ovat sovellukset, PostgreSQL, Wikipedia-CronJob ja
-tietokannan varmuuskopiointi.
+Yhteiset resurssit määritellään Kustomize-basessa. Ympäristökohtaiset
+muutokset ovat overlays/staging- ja overlays/production-hakemistoissa.
+
+GitHub Actions rakentaa konttikuvat ja tallentaa julkaisutiedot Gitiin.
+Argo CD päivittää ympäristöt automaattisesti.
+
+Tuotannon kuvat ja manifestit lukitaan tägin commitiin. Myöhemmät
+main-haaran muutokset päivittyvät stagingiin.
 
 ### Testaus
 
-Argo CD saavutti tilat `Synced` ja `Healthy`.
-
-Muutin käyttöliittymän otsikoksi `Todo App - GitOps 4.8` ja tein
-commitin main-haaraan. Uusi otsikko ilmestyi sovellukseen automaattisesti.
-
-Todon lisääminen ja tehdyksi merkitseminen toimivat.
-Wikipedia-työn testiajo valmistui onnistuneesti kuudessa sekunnissa
-ja loi uuden todon.
+- Stagingissa luotu todo ei näkynyt tuotannossa.
+- Stagingin broadcaster kirjasi luomisen ja päivityksen tapahtumina
+  todo_event_logged.
+- Stagingissa oli vain read-wikipedia-CronJob.
+- Tuotannossa oli myös todo-db-backup-CronJob.
+- Main-commit vaihtoi otsikon versioon 4.9 vain stagingissa.
+- Tägin julkaiseminen päivitti myös tuotannon versioon 4.9.
+- Molemmat Argo CD -sovellukset saavuttivat tilat Synced ja Healthy.
 
 ### Tiedostot
 
-- [GitHub Actions -työnkulku](../.github/workflows/deploy-todo.yaml)
-- [Argo CD Application](../gitops/todo-application.yaml)
-- [Kustomize-määritys](../kustomization.yaml)
-- [Kuvatunnisteiden julkaisuskripti](../gke/release-todo-images.sh)
+- [Yhteinen base](../base/kustomization.yaml)
+- [Staging](../overlays/staging/kustomization.yaml)
+- [Production](../overlays/production/kustomization.yaml)
+- [Argo CD -määritys](../gitops/todo-application.yaml)
+- [Tuotannon julkaisutiedot](../gitops/todo-apps/production-release.json)
+- [GitHub Actions](../.github/workflows/deploy-todo.yaml)
