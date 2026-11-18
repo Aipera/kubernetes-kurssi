@@ -23,7 +23,7 @@ spec:
                 port:
                   number: 80
           - path: /todos
-            pathType: Exact
+            pathType: Prefix
             backend:
               service:
                 name: todo-backend

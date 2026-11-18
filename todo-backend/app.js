@@ -26,8 +26,14 @@ async function initializeTodos() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS todos (
       id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-      text text NOT NULL
+      text text NOT NULL,
+      done boolean NOT NULL DEFAULT false
     )
+  `);
+
+  await pool.query(`
+    ALTER TABLE todos
+    ADD COLUMN IF NOT EXISTS done boolean NOT NULL DEFAULT false
   `);
 
   if (process.env.INITIAL_TODOS === undefined) return;
@@ -80,28 +86,39 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.url !== todosPath) {
+  const itemPrefix = `${todosPath.replace(/\/$/, '')}/`;
+  const todoId = req.url.startsWith(itemPrefix) ? req.url.slice(itemPrefix.length) : undefined;
+
+  if (req.url !== todosPath && todoId === undefined) {
     sendJson(res, 404, { error: 'Reittiä ei löydy.' });
     return;
   }
 
   const requestLog = { event: 'todo_request', method: req.method, path: req.url };
-  if (req.method === 'POST') {
+  if (req.method === 'POST' || req.method === 'PUT') {
     res.once('finish', () => {
       console.log(JSON.stringify({ ...requestLog, status: res.statusCode }));
     });
   }
 
+  if (todoId !== undefined &&
+      (!/^[1-9]\d{0,18}$/.test(todoId) || BigInt(todoId) > 9223372036854775807n)) {
+    requestLog.reason = 'invalid_id';
+    sendJson(res, 400, { error: 'Tehtävän tunnisteen pitää olla positiivinen bigint-kokonaisluku.' });
+    return;
+  }
+
   try {
-    if (req.method === 'GET') {
+    if (req.method === 'GET' && todoId === undefined) {
       await ensureTodosInitialized();
-      const { rows } = await pool.query('SELECT text FROM todos ORDER BY id');
-      sendJson(res, 200, rows.map((row) => row.text));
+      const { rows } = await pool.query('SELECT id::text AS id, text, done FROM todos ORDER BY id');
+      sendJson(res, 200, rows);
       return;
     }
 
-    if (req.method !== 'POST') {
-      res.setHeader('Allow', 'GET, POST');
+    const expectedMethod = todoId === undefined ? 'POST' : 'PUT';
+    if (req.method !== expectedMethod) {
+      res.setHeader('Allow', todoId === undefined ? 'GET, POST' : 'PUT');
       sendJson(res, 405, { error: 'Pyyntötyyppiä ei tueta.' });
       return;
     }
@@ -133,6 +150,34 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (todoId !== undefined) {
+      requestLog.todoId = todoId;
+      if (typeof payload?.done !== 'boolean') {
+        requestLog.reason = 'invalid_done';
+        sendJson(res, 400, { error: 'done-kentän pitää olla true tai false.' });
+        return;
+      }
+
+      requestLog.done = payload.done;
+      await ensureTodosInitialized();
+      const { rows } = await pool.query(`
+        UPDATE todos
+        SET done = $1
+        WHERE id = $2
+        RETURNING id::text AS id, text, done
+      `, [payload.done, todoId]);
+
+      if (rows.length === 0) {
+        requestLog.reason = 'not_found';
+        sendJson(res, 404, { error: 'Tehtävää ei löydy.' });
+        return;
+      }
+
+      requestLog.reason = 'accepted';
+      sendJson(res, 200, rows[0]);
+      return;
+    }
+
     const submittedText = typeof payload?.text === 'string' ? payload.text : '';
     const text = submittedText.trim();
     requestLog.text = submittedText;
@@ -147,9 +192,12 @@ const server = http.createServer(async (req, res) => {
     }
 
     await ensureTodosInitialized();
-    await pool.query('INSERT INTO todos (text) VALUES ($1)', [text]);
+    const { rows } = await pool.query(`
+      INSERT INTO todos (text) VALUES ($1)
+      RETURNING id::text AS id, text, done
+    `, [text]);
     requestLog.reason = 'accepted';
-    sendJson(res, 201, { text });
+    sendJson(res, 201, rows[0]);
   } catch (error) {
     requestLog.reason = 'database_error';
     console.error('Todo database query failed:', error);

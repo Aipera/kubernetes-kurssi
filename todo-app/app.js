@@ -127,6 +127,17 @@ const server = http.createServer(async (req, res) => {
   <style>
     body { margin: 2rem; text-align: center; font-family: system-ui, sans-serif; }
     img { width: min(100%, 600px); height: auto; border-radius: 12px; }
+    #todo-list { max-width: 800px; margin: 1rem auto; padding: 0; list-style: none; text-align: left; }
+    .todo-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+                 margin: 0.75rem 0; padding: 1rem; background: #f7f7f7;
+                 border-left: 5px solid #4caf50; border-radius: 6px; }
+    .todo-text { min-width: 0; overflow-wrap: anywhere; }
+    .todo-done { background: #eee; border-left-color: #999; }
+    .todo-done .todo-text { color: #666; text-decoration: line-through; }
+    .done-label { color: #2e7d32; font-weight: bold; }
+    .mark-done { flex-shrink: 0; padding: 0.5rem 0.8rem; font: inherit; cursor: pointer;
+                 color: #fff; background: #1e74cf; border: 0; border-radius: 6px; }
+    .mark-done:disabled { opacity: 0.6; cursor: wait; }
     .break-app { margin-top: 1rem; padding: 0.6rem 1rem; font: inherit; cursor: pointer;
                  color: #fff; background: #ae2929; border: 0; border-radius: 6px; }
   </style>
@@ -145,7 +156,7 @@ const server = http.createServer(async (req, res) => {
 
     <p id="todo-status" role="status"></p>
     <h2 id="todos-heading">Todos</h2>
-    <ul id="todo-list" style="display: inline-block; text-align: left;"></ul>
+    <ul id="todo-list"></ul>
   </section>
 
   <form action="/break" method="post">
@@ -161,20 +172,67 @@ const server = http.createServer(async (req, res) => {
     const status = document.getElementById('todo-status');
     const button = form.querySelector('button');
     const todosPath = form.dataset.todosPath;
+    let latestLoad = 0;
 
     async function loadTodos() {
+      const loadNumber = ++latestLoad;
       const response = await fetch(todosPath, { cache: 'no-store' });
       if (!response.ok) {
         throw new Error('Tehtävälistaa ei saatu ladattua.');
       }
 
       const todos = await response.json();
+      if (loadNumber !== latestLoad) return;
       list.replaceChildren();
 
-      for (const text of todos) {
+      for (const todo of todos) {
         const item = document.createElement('li');
-        item.textContent = text;
+        item.className = 'todo-item';
+        const text = document.createElement('span');
+        text.className = 'todo-text';
+        text.textContent = typeof todo === 'string' ? todo : todo.text;
+        item.append(text);
+
+        if (todo.done === true) {
+          item.classList.add('todo-done');
+          const label = document.createElement('span');
+          label.className = 'done-label';
+          label.textContent = 'Done';
+          item.append(label);
+        } else if (todo.id !== undefined) {
+          const doneButton = document.createElement('button');
+          doneButton.type = 'button';
+          doneButton.className = 'mark-done';
+          doneButton.textContent = 'Mark done';
+          doneButton.addEventListener('click', () => markDone(todo.id, doneButton));
+          item.append(doneButton);
+        }
+
         list.append(item);
+      }
+    }
+
+    async function markDone(id, doneButton) {
+      status.textContent = '';
+      doneButton.disabled = true;
+
+      try {
+        const response = await fetch(todosPath.replace(/\\/$/, '') + '/' + encodeURIComponent(id), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ done: true })
+        });
+
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+          throw new Error(result.error || 'Tehtävän päivittäminen epäonnistui.');
+        }
+
+        await loadTodos();
+        status.textContent = 'Tehtävä merkitty valmiiksi.';
+      } catch (error) {
+        status.textContent = error.message;
+        doneButton.disabled = false;
       }
     }
 

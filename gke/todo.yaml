@@ -124,7 +124,7 @@ spec:
   rules:
     - matches:
         - path:
-            type: Exact
+            type: PathPrefix
             value: /todos
       backendRefs:
         - name: todo-backend
