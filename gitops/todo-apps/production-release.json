@@ -5,13 +5,20 @@
     "name": "todo-project",
     "namespace": "argocd",
     "annotations": {
-      "release-tag": "pre-4.9"
+      "release-tag": "4.9-test-20261118-234616"
     }
   },
   "spec": {
     "source": {
-      "targetRevision": "83ce0871c8bb4fe978592dce2d3a8fc181dd7ffc",
-      "path": "."
+      "targetRevision": "fbe39604b7f975dbfaed78cee2dde4d1a3d2b8a7",
+      "path": "overlays/production",
+      "kustomize": {
+        "images": [
+          "europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app=europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-app:fbe39604b7f975dbfaed78cee2dde4d1a3d2b8a7",
+          "europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend=europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/todo-backend:fbe39604b7f975dbfaed78cee2dde4d1a3d2b8a7",
+          "europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster=europe-north1-docker.pkg.dev/project-e08f1dba-8ab7-491a-90a/kurssi/broadcaster:fbe39604b7f975dbfaed78cee2dde4d1a3d2b8a7"
+        ]
+      }
     }
   }
 }
