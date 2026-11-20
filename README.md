@@ -46,3 +46,4 @@
 - [5.1 – DIY CRD & Controller](dummysite/README.md)
 - [5.2 Getting started with Istio service mesh](service-mesh/5.2/README.md)
 - [5.3 Log app, the Service Mesh Edition](service-mesh/5.3/README.md)
+- [5.4 Wikipedia with init and sidecar containers](wikipedia/README.md)
