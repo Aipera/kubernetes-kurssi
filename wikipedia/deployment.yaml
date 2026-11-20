@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wikipedia
+  namespace: wikipedia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wikipedia
+  template:
+    metadata:
+      labels:
+        app: wikipedia
+    spec:
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+      - name: fetch-initial-page
+        image: curlimages/curl:8.23.0
+        command:
+        - /bin/sh
+        - /scripts/fetch-page.sh
+        args:
+        - https://en.wikipedia.org/wiki/Kubernetes
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 300m
+            memory: 128Mi
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      containers:
+      - name: nginx
+        image: nginx:1.30.7-alpine
+        ports:
+        - name: http
+          containerPort: 80
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 300m
+            memory: 128Mi
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+          readOnly: true
+      - name: refresh-page
+        image: curlimages/curl:8.23.0
+        command:
+        - /bin/sh
+        - /scripts/refresh-pages.sh
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 300m
+            memory: 128Mi
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      volumes:
+      - name: www
+        emptyDir:
+          sizeLimit: 32Mi
+      - name: scripts
+        configMap:
+          name: wikipedia-scripts

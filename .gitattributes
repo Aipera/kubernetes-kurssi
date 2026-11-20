@@ -1,3 +1,5 @@
 
 gke/release-todo-images.sh text eol=lf
 log-output/release-image.sh text eol=lf
+
+wikipedia/*.sh text eol=lf
