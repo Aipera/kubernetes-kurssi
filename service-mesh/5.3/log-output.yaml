@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-output
+  namespace: exercises
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-output
+  template:
+    metadata:
+      labels:
+        app: log-output
+        version: v1
+    spec:
+      containers:
+      - name: writer
+        image: log-output:5.3
+        imagePullPolicy: IfNotPresent
+        command:
+        - node
+        - writer.js
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+        volumeMounts:
+        - name: shared-logs
+          mountPath: /shared
+      - name: reader
+        image: log-output:5.3
+        imagePullPolicy: IfNotPresent
+        command:
+        - node
+        - app.js
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+        ports:
+        - name: http
+          containerPort: 3000
+        env:
+        - name: MESSAGE
+          valueFrom:
+            configMapKeyRef:
+              name: log-output-config
+              key: MESSAGE
+        - name: GREETER_URL
+          value: http://greeter-svc/
+        readinessProbe:
+          httpGet:
+            path: /log
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 6
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 6
+          initialDelaySeconds: 10
+        volumeMounts:
+        - name: shared-logs
+          mountPath: /shared
+          readOnly: true
+        - name: log-output-config
+          mountPath: /config
+          readOnly: true
+      volumes:
+      - name: shared-logs
+        emptyDir: {}
+      - name: log-output-config
+        configMap:
+          name: log-output-config
+          items:
+          - key: information.txt
+            path: information.txt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: log-output-svc
+  namespace: exercises
+spec:
+  selector:
+    app: log-output
+  ports:
+  - name: http
+    appProtocol: http
+    port: 80
+    targetPort: http

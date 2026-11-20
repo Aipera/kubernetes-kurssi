@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: exercises
+resources:
+- namespace.yaml
+- waypoint.yaml
+- configmap.yaml
+- postgres.yaml
+- ping-pong.yaml
+- log-output.yaml
+- greeter-v1.yaml
+- greeter-v2.yaml
+- gateway.yaml
+- greeter-route.yaml

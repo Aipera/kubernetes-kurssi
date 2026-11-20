@@ -1,13 +1,13 @@
 const http = require('node:http');
 const { readFile } = require('node:fs/promises');
 
-async function readPingCount() {
-  const response = await fetch('http://ping-pong/pongs', {
+async function readServiceText(url, service) {
+  const response = await fetch(url, {
     signal: AbortSignal.timeout(5000)
   });
 
   if (!response.ok) {
-    throw new Error(`Ping-pong returned HTTP ${response.status}`);
+    throw new Error(`${service} returned HTTP ${response.status}`);
   }
 
   return (await response.text()).trim();
@@ -15,7 +15,7 @@ async function readPingCount() {
 
 const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end('ok\n');
     return;
   }
@@ -30,14 +30,20 @@ const server = http.createServer(async (req, res) => {
     const information = await readFile('/config/information.txt', 'utf8');
     const log = await readFile('/shared/output.log', 'utf8');
     const latestLine = log.trimEnd().split('\n').at(-1);
-    const count = await readPingCount();
+    const [count, greeting] = await Promise.all([
+      readServiceText(process.env.PING_PONG_URL || 'http://ping-pong/pongs', 'Ping-pong'),
+      process.env.GREETER_URL
+        ? readServiceText(process.env.GREETER_URL, 'Greeter')
+        : undefined
+    ]);
 
-    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(
       `file content: ${information.trimEnd()}\n` +
       `env variable: MESSAGE=${process.env.MESSAGE ?? ''}\n` +
       `${latestLine}\n` +
-      `Ping / Pongs: ${count}\n`
+      `Ping / Pongs: ${count}\n` +
+      (greeting === undefined ? '' : `Greeting: ${greeting}\n`)
     );
   } catch (error) {
     console.error(error);
@@ -46,4 +52,4 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(3000, '0.0.0.0');
+server.listen(Number(process.env.PORT || 3000), '0.0.0.0');
