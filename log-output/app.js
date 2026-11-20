@@ -1,9 +1,9 @@
 const http = require('node:http');
 const { readFile } = require('node:fs/promises');
 
-async function readServiceText(url, service) {
+async function readServiceText(url, service, timeoutMs = 5000) {
   const response = await fetch(url, {
-    signal: AbortSignal.timeout(5000)
+    signal: AbortSignal.timeout(timeoutMs)
   });
 
   if (!response.ok) {
@@ -31,7 +31,11 @@ const server = http.createServer(async (req, res) => {
     const log = await readFile('/shared/output.log', 'utf8');
     const latestLine = log.trimEnd().split('\n').at(-1);
     const [count, greeting] = await Promise.all([
-      readServiceText(process.env.PING_PONG_URL || 'http://ping-pong/pongs', 'Ping-pong'),
+      readServiceText(
+        process.env.PING_PONG_URL || 'http://ping-pong/pongs',
+        'Ping-pong',
+        Number(process.env.PING_PONG_TIMEOUT_MS || 5000)
+      ),
       process.env.GREETER_URL
         ? readServiceText(process.env.GREETER_URL, 'Greeter')
         : undefined

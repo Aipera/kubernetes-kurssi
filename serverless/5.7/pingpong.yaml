@@ -1,0 +1,54 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: pingpong
+spec:
+  template:
+    metadata:
+      labels:
+        app: pingpong
+        version: v1
+      annotations:
+        autoscaling.knative.dev/min-scale: "0"
+        autoscaling.knative.dev/max-scale: "3"
+    spec:
+      containers:
+        - name: pingpong
+          image: dev.local/ping-pong:5.7
+          imagePullPolicy: Never
+          ports:
+            - name: http1
+              containerPort: 8080
+          env:
+            - name: PGHOST
+              value: ping-pong-postgres.exercises.svc.cluster.local
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: pingpong
+            - name: PGDATABASE
+              value: pingpong
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ping-pong-postgres-auth
+                  key: password
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault

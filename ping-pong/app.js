@@ -36,6 +36,12 @@ function ensureCounterInitialized() {
 }
 
 const server = http.createServer(async (req, res) => {
+  if (req.method === 'GET' && req.url === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('ok\n');
+    return;
+  }
+
   if (req.method !== 'GET' || (req.url !== '/' && req.url !== '/pongs')) {
     res.writeHead(404);
     res.end();
@@ -72,4 +78,4 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(3000, '0.0.0.0');
+server.listen(Number(process.env.PORT || 3000), '0.0.0.0');
