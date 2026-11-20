@@ -48,3 +48,4 @@
 - [5.3 Log app, the Service Mesh Edition](service-mesh/5.3/README.md)
 - [5.4 Wikipedia with init and sidecar containers](wikipedia/README.md)
 - [5.6](https://github.com/Aipera/kubernetes-kurssi/tree/5.6)
+- [5.7](https://github.com/Aipera/kubernetes-kurssi/tree/5.7)
