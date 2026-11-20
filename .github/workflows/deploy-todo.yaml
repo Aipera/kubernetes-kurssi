@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
 
 concurrency:
@@ -28,6 +28,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check configuration repository access
+        env:
+          CONFIG_REPO_TOKEN: ${{ secrets.CONFIG_REPO_TOKEN }}
+        run: |
+          if [[ -z "$CONFIG_REPO_TOKEN" ]]; then
+            echo 'Add CONFIG_REPO_TOKEN: a fine-grained token for Aipera/kubernetes-kurssi-config with Contents read/write.' >&2
+            exit 1
+          fi
+
+      - name: Check out configuration repository
+        uses: actions/checkout@v6
+        with:
+          repository: Aipera/kubernetes-kurssi-config
+          ref: main
+          token: ${{ secrets.CONFIG_REPO_TOKEN }}
+          path: config-repository
+          fetch-depth: 0
+
       - uses: imranismail/setup-kustomize@v3
         with:
           kustomize-version: '5.8.1'
@@ -40,9 +58,9 @@ jobs:
 
       - name: Validate environments
         run: |
-          kustomize build overlays/staging >/dev/null
-          kustomize build overlays/production >/dev/null
-          kustomize build gitops/todo-apps >/dev/null
+          kustomize build config-repository/overlays/staging >/dev/null
+          kustomize build config-repository/overlays/production >/dev/null
+          kustomize build config-repository/gitops/todo-apps >/dev/null
 
       - name: Build images
         run: |
@@ -71,5 +89,5 @@ jobs:
           docker push "$TODO_BACKEND_IMAGE"
           docker push "$BROADCASTER_IMAGE"
 
-      - name: Commit image versions for Argo CD
+      - name: Publish release to configuration repository
         run: bash gke/release-todo-images.sh
