@@ -42,3 +42,4 @@
 - [4.7 – Log output GitOps](log-output/README.md)
 - [4.8 – Todo-projektin GitOps](todo-app/README.md)
 - [4.9 – Staging ja production](todo-app/README.md)
+- [4.10 – Erilliset repositoriot](todo-app/README.md#410-erilliset-repositoriot) · [Konfiguraatiorepo](https://github.com/Aipera/kubernetes-kurssi-config)
