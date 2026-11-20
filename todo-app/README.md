@@ -1,40 +1,35 @@
-## 4.9 Staging ja production
+## 4.10 Erilliset repositoriot
 
-Projektilla on kaksi erillistä ympäristöä:
+Todo-projektin sovelluskoodi ja Kubernetes-määritykset ovat eri repositorioissa:
 
-| Ympäristö | Namespace | Julkaisu | Broadcaster | Varmuuskopiointi |
+- [kubernetes-kurssi](https://github.com/Aipera/kubernetes-kurssi): sovelluskoodi, Dockerfilet ja GitHub Actions -työnkulut.
+- [kubernetes-kurssi-config](https://github.com/Aipera/kubernetes-kurssi-config): Kubernetes-manifestit, Kustomize-ympäristöt ja Argo CD Applicationit.
+
+GitHub Actions rakentaa ja julkaisee konttikuvat Artifact Registryyn. Kuvien tunnisteena käytetään koodirepon commitin SHA:ta. Sen jälkeen työnkulku päivittää kuvaversiot konfiguraatiorepoon CONFIG_REPO_TOKEN-salaisuuden avulla.
+
+Argo CD seuraa konfiguraatiorepoa ja ottaa muutokset käyttöön klusterissa.
+
+### Ympäristöt
+
+| Ympäristö | Namespace | Julkaisun käynnistäjä | Broadcaster | Tietokannan varmuuskopiointi |
 |---|---|---|---|---|
-| staging | staging | Main-commit | Vain lokiin | Ei |
-| production | project | Tägi | Webhookiin | Kyllä |
+| Staging | staging | Commit koodirepon main-haaraan | Kirjoittaa lokiin | Ei |
+| Production | project | Koodirepon tagi | Lähettää webhookiin | Kyllä |
 
-Tuotanto käyttää nykyistä project-namespacea ja sen tietokantaa.
-Stagingilla on oma tietokanta, Secret ja pysyvät levyt.
+Tuotannon määritykset sidotaan konfiguraatiorepon tiettyyn committiin. Konttikuvat sidotaan julkaistun koodicommitin SHA:han.
 
-Yhteiset resurssit määritellään Kustomize-basessa. Ympäristökohtaiset
-muutokset ovat overlays/staging- ja overlays/production-hakemistoissa.
-
-GitHub Actions rakentaa konttikuvat ja tallentaa julkaisutiedot Gitiin.
-Argo CD päivittää ympäristöt automaattisesti.
-
-Tuotannon kuvat ja manifestit lukitaan tägin commitiin. Myöhemmät
-main-haaran muutokset päivittyvät stagingiin.
+Secretit hallitaan klusterissa Argo CD:n ulkopuolella.
 
 ### Testaus
 
-- Stagingissa luotu todo ei näkynyt tuotannossa.
-- Stagingin broadcaster kirjasi luomisen ja päivityksen tapahtumina
-  todo_event_logged.
-- Stagingissa oli vain read-wikipedia-CronJob.
-- Tuotannossa oli myös todo-db-backup-CronJob.
-- Main-commit vaihtoi otsikon versioon 4.9 vain stagingissa.
-- Tägin julkaiseminen päivitti myös tuotannon versioon 4.9.
-- Molemmat Argo CD -sovellukset saavuttivat tilat Synced ja Healthy.
+Main-haaran päivitys julkaisi stagingin kuvaversiot konfiguraatiorepoon muuttamatta tuotannon julkaisua.
 
-### Tiedostot
+Tagilla `4.10-test-20261120-155256` käynnistetty ajo julkaisi tuotannon päivityksen konfiguraatiorepoon.
 
-- [Yhteinen base](../base/kustomization.yaml)
-- [Staging](../overlays/staging/kustomization.yaml)
-- [Production](../overlays/production/kustomization.yaml)
-- [Argo CD -määritys](../gitops/todo-application.yaml)
-- [Tuotannon julkaisutiedot](../gitops/todo-apps/production-release.json)
-- [GitHub Actions](../.github/workflows/deploy-todo.yaml)
+Lopputarkistuksessa kaikki Applicationit olivat Synced ja Healthy:
+
+- todo-environments
+- todo-staging
+- todo-project
+
+Molempien ympäristöjen käyttöliittymät ja Todo API vastasivat HTTP 200.
